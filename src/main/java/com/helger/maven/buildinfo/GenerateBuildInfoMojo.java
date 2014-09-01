@@ -1,5 +1,4 @@
 /**
- * Copyright (C) 2006-2014 phloc systems (www.phloc.com)
  * Copyright (C) 2014 Philip Helger (www.helger.com)
  * philip[at]helger[dot]com
  *
@@ -178,7 +177,7 @@ public final class GenerateBuildInfoMojo extends AbstractMojo
    * <pre>
    * &lt;mapping>
    *   &lt;map key="buildinfo.version" value="2" />
-   *   &lt;map key="project.groupid" value="com.phloc.maven" />
+   *   &lt;map key="project.groupid" value="com.helger.maven" />
    *   ...
    * &lt;/mapping>
    * </pre>
@@ -507,7 +506,7 @@ public final class GenerateBuildInfoMojo extends AbstractMojo
   private void _writeBuildinfoXML (final Map <String, String> aProps) throws MojoExecutionException
   {
     // Write the XML in the format that it can easily be read by the
-    // com.phloc.common.microdom.reader.XMLMappingReader class
+    // com.helger.common.microdom.reader.XMLMapHandler class
     final File aFile = new File (tempDirectory, DEFAULT_FILENAME_BUILDINFO_XML);
     if (XMLMapHandler.writeMap (aProps, new FileSystemResource (aFile)).isFailure ())
       throw new MojoExecutionException ("Failed to write XML file to " + aFile);
