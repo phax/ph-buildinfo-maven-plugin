@@ -22,10 +22,11 @@ import org.slf4j.Logger;
 
 /**
  * Implementation of {@link ILoggerFactory} returning the appropriate named
- * {@link Slf4jAdapter} instance.
+ * Slf4jAdapter instance.
  * <p>
  * The class is thread-safe.
- * 
+ * </p>
+ *
  * @author Yegor Bugayenko (yegor@jcabi.com)
  * @version $Id$
  * @since 0.1.6
@@ -51,7 +52,7 @@ final class Loggers implements ILoggerFactory
 
   /**
    * Set Maven log.
-   * 
+   *
    * @param log
    *        The log to set
    */
