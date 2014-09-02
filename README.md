@@ -78,7 +78,10 @@ Configuration items are:
   ...
 </mapping>
 ```
-     Defaults to `true`. The created file is always `META-INF/buildinfo.xml`.
+
+     Defaults to `true`. 
+     The created file is always `META-INF/buildinfo.xml`.
   * `boolean` **formatProperties**
      Generate build info in .properties format? It is safe to generate multiple formats in one run!
-     Defaults to `false`.
+     Defaults to `false`. 
+     The created file is always `META-INF/buildinfo.properties`.
