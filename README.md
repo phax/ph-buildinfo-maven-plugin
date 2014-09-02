@@ -35,13 +35,14 @@ A Maven 3 plugin that adds build information to the resulting artefacts.
 Configuration items are:
 
   * `File` **tempDirectory**  
-     The directory where the temporary buildinfo files will be saved. 
+     The directory where the temporary buildinfo files will be saved.  
      Defaults to `${project.build.directory}/buildinfo-maven-plugin`
   * `boolean` **withAllSystemProperties**  
      Should all system properties be emitted into the build info? 
      If this flag is set, the **selectedSystemProperties** are cleared, so either this flag or
      the **selectedSystemProperties** should be used. All contained system properties are prefixed with
-     `systemproperty.` in the generated file. Defaults to `false`
+     `systemproperty.` in the generated file.  
+     Defaults to `false`
   * `HashSet <String>` **selectedSystemProperties**  
      A selected subset of system property names 
      to be emitted. Each element can be a regular expression to match more than one potential 
@@ -53,10 +54,10 @@ Configuration items are:
      to be ignored. Each element can be a regular expression to match more than one potential system
      property. Ignored system properties take precedence over selected system properties. 
      They are also ignored if **withAllSystemProperties** is set to `true`.
-  * `boolean` **withAllEnvVars**
+  * `boolean` **withAllEnvVars**  
      Should all environment variables be emitted into the build info? If this flag is set, 
      the selectedEnvVars are cleared, so either this flag or the **selectedEnvVars** should be used.
-     All contained environment variables are prefixed with `envvar.` in the generated file.
+     All contained environment variables are prefixed with `envvar.` in the generated file.  
      Defaults to `false`.
   * `HashSet <String>` **selectedEnvVars**  
      A selected subset of environment variables names to be emitted. Each element can be 
@@ -66,21 +67,22 @@ Configuration items are:
   * `HashSet <String>` **ignoredEnvVars**  
      A selected subset of environment variables names to be ignored. Each element can be a 
      regular expression to match more than one potential environment variables. Ignored 
-     environment variables take precedence over selected environment variables. 
+     environment variables take precedence over selected environment variables.
      They are also ignored if withAllEnvVars is set to `true`.
   * `boolean` **formatXML**  
-     Generate build info in .XML format? It is safe to generate multiple formats in one run!
-     Defaults to `true`. 
-     The created file is always `META-INF/buildinfo.xml`.
+     Generate build info in .XML format? It is safe to generate multiple formats in one run!  
+     Defaults to `true`.  
+     The created file is always `META-INF/buildinfo.xml`.  
      The generated file has the following layout:
-     
-    <mapping>
-      <map key="buildinfo.version" value="2" />
-      <map key="project.groupid" value="com.helger.maven" />
-      ...
-    </mapping>
+```xml     
+<mapping>
+  <map key="buildinfo.version" value="2" />
+  <map key="project.groupid" value="com.helger.maven" />
+  ...
+</mapping>
+```
 
   * `boolean` **formatProperties**  
-     Generate build info in .properties format? It is safe to generate multiple formats in one run!
-     Defaults to `false`.
+     Generate build info in .properties format? It is safe to generate multiple formats in one run!  
+     Defaults to `false`.  
      The created file is always `META-INF/buildinfo.properties`.
