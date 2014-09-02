@@ -125,7 +125,7 @@ public final class GenerateBuildInfoMojo extends AbstractMojo
    *
    * @parameter property="selectedSystemProperties"
    */
-  private Set <String> selectedSystemProperties;
+  private HashSet <String> selectedSystemProperties;
 
   /**
    * A selected subset of system property names to be ignored. Each element can
@@ -134,7 +134,7 @@ public final class GenerateBuildInfoMojo extends AbstractMojo
    *
    * @parameter property="ignoredSystemProperties"
    */
-  private Set <String> ignoredSystemProperties;
+  private HashSet <String> ignoredSystemProperties;
 
   /**
    * Should all environment variables be emitted into the build info? If this
@@ -157,7 +157,7 @@ public final class GenerateBuildInfoMojo extends AbstractMojo
    *
    * @parameter property="selectedEnvVars"
    */
-  private Set <String> selectedEnvVars;
+  private HashSet <String> selectedEnvVars;
 
   /**
    * A selected subset of environment variables names to be ignored. Each
@@ -167,7 +167,7 @@ public final class GenerateBuildInfoMojo extends AbstractMojo
    *
    * @parameter property="ignoredEnvVars"
    */
-  private Set <String> ignoredEnvVars;
+  private HashSet <String> ignoredEnvVars;
 
   /**
    * Generate build info in .XML format? It is safe to generate multiple formats
@@ -175,11 +175,11 @@ public final class GenerateBuildInfoMojo extends AbstractMojo
    * The generated file has the following layout:
    *
    * <pre>
-   * &lt;mapping>
-   *   &lt;map key="buildinfo.version" value="2" />
-   *   &lt;map key="project.groupid" value="com.helger.maven" />
+   * &lt;mapping&gt;
+   *   &lt;map key="buildinfo.version" value="2" /&gt;
+   *   &lt;map key="project.groupid" value="com.helger.maven" /&gt;
    *   ...
-   * &lt;/mapping>
+   * &lt;/mapping&gt;
    * </pre>
    *
    * @parameter property="formatXML" default-value="true"
