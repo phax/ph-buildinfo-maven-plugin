@@ -70,6 +70,8 @@ Configuration items are:
      They are also ignored if withAllEnvVars is set to `true`.
   * `boolean` **formatXML**
      Generate build info in .XML format? It is safe to generate multiple formats in one run!
+     Defaults to `true`. 
+     The created file is always `META-INF/buildinfo.xml`.
      The generated file has the following layout:
 ```xml
 <mapping>
@@ -78,9 +80,6 @@ Configuration items are:
   ...
 </mapping>
 ```
-
-     Defaults to `true`. 
-     The created file is always `META-INF/buildinfo.xml`.
   * `boolean` **formatProperties**
      Generate build info in .properties format? It is safe to generate multiple formats in one run!
      Defaults to `false`. 
