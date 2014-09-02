@@ -71,14 +71,14 @@ Configuration items are:
   * `boolean` **formatXML**
      Generate build info in .XML format? It is safe to generate multiple formats in one run!
      The generated file has the following layout:
-     ```xml      
-      <mapping>
-        <map key="buildinfo.version" value="2" />
-        <map key="project.groupid" value="com.helger.maven" />
-        ...
-      </mapping>
-     ```
-     Defaults to `true`.
+```xml
+<mapping>
+  <map key="buildinfo.version" value="2" />
+  <map key="project.groupid" value="com.helger.maven" />
+  ...
+</mapping>
+```
+     Defaults to `true`. The created file is always `META-INF/buildinfo.xml`.
   * `boolean` **formatProperties**
      Generate build info in .properties format? It is safe to generate multiple formats in one run!
      Defaults to `false`.
