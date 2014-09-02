@@ -131,6 +131,8 @@ public final class GenerateBuildInfoMojo extends AbstractMojo
    * A selected subset of system property names to be ignored. Each element can
    * be a regular expression to match more than one potential system property.
    * Ignored system properties take precedence over selected system properties.
+   * They are also ignored if withAllSystemProperties is set to
+   * <code>true</code>.
    *
    * @parameter property="ignoredSystemProperties"
    */
@@ -163,7 +165,8 @@ public final class GenerateBuildInfoMojo extends AbstractMojo
    * A selected subset of environment variables names to be ignored. Each
    * element can be a regular expression to match more than one potential
    * environment variables. Ignored environment variables take precedence over
-   * selected environment variables.
+   * selected environment variables. They are also ignored if withAllEnvVars is
+   * set to <code>true</code>.
    *
    * @parameter property="ignoredEnvVars"
    */
