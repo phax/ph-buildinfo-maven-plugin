@@ -1,8 +1,7 @@
-ph-buildinfo-maven-plugin
-=========================
+#ph-buildinfo-maven-plugin
 
 A Maven 2/3 plugin that adds build information to the resulting artefacts.
-Tested with Maven 2.2.1 and 3.x
+Tested with Maven 2.2.1, 3.0.4 and 3.2.1.
 
 ## Maven configuration
 ```xml
@@ -87,3 +86,8 @@ Configuration items are:
      Generate build info in .properties format? It is safe to generate multiple formats in one run!  
      Defaults to `false`.  
      The created file is always `META-INF/buildinfo.properties`.
+
+---
+
+On Twitter: <a href="https://twitter.com/philiphelger">Follow @philiphelger</a>
+     
