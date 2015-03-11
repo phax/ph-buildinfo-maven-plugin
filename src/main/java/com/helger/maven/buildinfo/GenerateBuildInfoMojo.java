@@ -40,7 +40,7 @@ import org.slf4j.impl.StaticLoggerBinder;
 
 import com.helger.commons.CGlobal;
 import com.helger.commons.SystemProperties;
-import com.helger.commons.collections.ContainerHelper;
+import com.helger.commons.collections.CollectionHelper;
 import com.helger.commons.io.file.FileIOError;
 import com.helger.commons.io.file.FileOperations;
 import com.helger.commons.io.file.FileUtils;
@@ -483,8 +483,8 @@ public final class GenerateBuildInfoMojo extends AbstractMojo
     aProps.put ("build.datetime.timezone.offsetmillisecs", Integer.toString (nOfsMilliSecs));
 
     // Emit system properties?
-    if (withAllSystemProperties || ContainerHelper.isNotEmpty (selectedSystemProperties))
-      for (final Map.Entry <String, String> aEntry : ContainerHelper.getSortedByKey (SystemProperties.getAllProperties ())
+    if (withAllSystemProperties || CollectionHelper.isNotEmpty (selectedSystemProperties))
+      for (final Map.Entry <String, String> aEntry : CollectionHelper.getSortedByKey (SystemProperties.getAllProperties ())
                                                                     .entrySet ())
       {
         final String sName = aEntry.getKey ();
@@ -494,8 +494,8 @@ public final class GenerateBuildInfoMojo extends AbstractMojo
       }
 
     // Emit environment variable?
-    if (withAllEnvVars || ContainerHelper.isNotEmpty (selectedEnvVars))
-      for (final Map.Entry <String, String> aEntry : ContainerHelper.getSortedByKey (System.getenv ()).entrySet ())
+    if (withAllEnvVars || CollectionHelper.isNotEmpty (selectedEnvVars))
+      for (final Map.Entry <String, String> aEntry : CollectionHelper.getSortedByKey (System.getenv ()).entrySet ())
       {
         final String sName = aEntry.getKey ();
         if (withAllEnvVars || _matches (selectedEnvVars, sName))
