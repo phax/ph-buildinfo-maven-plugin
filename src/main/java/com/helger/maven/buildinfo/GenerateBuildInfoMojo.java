@@ -39,15 +39,15 @@ import org.joda.time.DateTime;
 import org.slf4j.impl.StaticLoggerBinder;
 
 import com.helger.commons.CGlobal;
-import com.helger.commons.SystemProperties;
-import com.helger.commons.collections.CollectionHelper;
+import com.helger.commons.collection.CollectionHelper;
+import com.helger.commons.io.file.FileHelper;
 import com.helger.commons.io.file.FileIOError;
 import com.helger.commons.io.file.FileOperations;
-import com.helger.commons.io.file.FileUtils;
 import com.helger.commons.io.resource.FileSystemResource;
-import com.helger.commons.microdom.reader.XMLMapHandler;
+import com.helger.commons.microdom.util.XMLMapHandler;
 import com.helger.commons.regex.RegExHelper;
 import com.helger.commons.string.StringHelper;
+import com.helger.commons.system.SystemProperties;
 import com.helger.datetime.PDTFactory;
 import com.helger.datetime.config.PDTConfig;
 
@@ -485,7 +485,7 @@ public final class GenerateBuildInfoMojo extends AbstractMojo
     // Emit system properties?
     if (withAllSystemProperties || CollectionHelper.isNotEmpty (selectedSystemProperties))
       for (final Map.Entry <String, String> aEntry : CollectionHelper.getSortedByKey (SystemProperties.getAllProperties ())
-                                                                    .entrySet ())
+                                                                     .entrySet ())
       {
         final String sName = aEntry.getKey ();
         if (withAllSystemProperties || _matches (selectedSystemProperties, sName))
@@ -506,7 +506,7 @@ public final class GenerateBuildInfoMojo extends AbstractMojo
     return aProps;
   }
 
-  private void _writeBuildinfoXML (final Map <String, String> aProps) throws MojoExecutionException
+  private void _writeBuildinfoXML (@Nonnull final Map <String, String> aProps) throws MojoExecutionException
   {
     // Write the XML in the format that it can easily be read by the
     // com.helger.common.microdom.reader.XMLMapHandler class
@@ -516,7 +516,7 @@ public final class GenerateBuildInfoMojo extends AbstractMojo
     getLog ().debug ("Wrote buildinfo XML file to " + aFile);
   }
 
-  private void _writeBuildinfoProperties (final Map <String, String> aProps) throws MojoExecutionException
+  private void _writeBuildinfoProperties (@Nonnull final Map <String, String> aProps) throws MojoExecutionException
   {
     // Write properties file
     final File aFile = new File (tempDirectory, DEFAULT_FILENAME_BUILDINFO_PROPERTIES);
@@ -524,7 +524,7 @@ public final class GenerateBuildInfoMojo extends AbstractMojo
     p.putAll (aProps);
     try
     {
-      p.store (FileUtils.getOutputStream (aFile), "Generated - do not edit!");
+      p.store (FileHelper.getOutputStream (aFile), "Generated - do not edit!");
     }
     catch (final IOException ex)
     {
