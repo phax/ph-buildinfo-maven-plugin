@@ -3,12 +3,14 @@
 A Maven 2/3 plugin that adds build information to the resulting artefacts.
 Tested with Maven 2.2.1, 3.0.4 and 3.2.1.
 
+Note: version 1.3.0+ require Maven 3.0. Latest version for Maven 2.x is 1.2.2.
+
 ## Maven configuration
 ```xml
       <plugin>
         <groupId>com.helger.maven</groupId>
         <artifactId>ph-buildinfo-maven-plugin</artifactId>
-        <version>1.2.1</version>
+        <version>1.2.2</version>
         <executions>
           <execution>
             <goals>

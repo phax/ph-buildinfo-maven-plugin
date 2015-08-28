@@ -36,7 +36,6 @@ import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.project.MavenProject;
 import org.joda.time.DateTime;
-import org.slf4j.impl.StaticLoggerBinder;
 
 import com.helger.commons.CGlobal;
 import com.helger.commons.collection.CollectionHelper;
@@ -90,8 +89,8 @@ public final class GenerateBuildInfoMojo extends AbstractMojo
    * The directory where the temporary buildinfo files will be saved.
    *
    * @required
-   * @parameter property=tempDirectory
-   *            default-value="${project.build.directory}/buildinfo-maven-plugin"
+   * @parameter property=tempDirectory default-value=
+   *            "${project.build.directory}/buildinfo-maven-plugin"
    */
   private File tempDirectory;
 
@@ -535,7 +534,6 @@ public final class GenerateBuildInfoMojo extends AbstractMojo
 
   public void execute () throws MojoExecutionException
   {
-    StaticLoggerBinder.getSingleton ().setMavenLog (getLog ());
     if (tempDirectory == null)
       throw new MojoExecutionException ("No buildinfo temp directory specified!");
     if (tempDirectory.exists () && !tempDirectory.isDirectory ())
