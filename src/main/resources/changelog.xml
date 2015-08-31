@@ -18,6 +18,17 @@
 
 -->
 <changelog xmlns="http://www.helger.com/xsd/changelog/1.0" version="1.0" component="ph-buildinfo-maven-plugin">
+  <release date="2015-08-31" version="1.3.0" />
+  <entry date="2015-08-31" category="tech" action="change">
+    <change>
+      <text locale="en">Removed manual SLF4J integration</text>
+    </change>
+  </entry>
+  <entry date="2015-08-31" category="tech" action="add">
+    <change>
+      <text locale="en">Added support for Eclipse m2e plugin</text>
+    </change>
+  </entry>
   <release date="2015-03-11" version="1.2.2" />
   <release date="2014-09-02" version="1.2.1" />
   <entry date="2014-09-02" category="tech" action="fix">

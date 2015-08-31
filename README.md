@@ -10,7 +10,7 @@ Note: version 1.3.0+ require Maven 3.0. Latest version for Maven 2.x is 1.2.2.
       <plugin>
         <groupId>com.helger.maven</groupId>
         <artifactId>ph-buildinfo-maven-plugin</artifactId>
-        <version>1.2.2</version>
+        <version>1.3.0</version>
         <executions>
           <execution>
             <goals>
