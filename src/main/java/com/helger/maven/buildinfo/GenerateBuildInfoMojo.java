@@ -18,12 +18,16 @@ package com.helger.maven.buildinfo;
 
 import java.io.File;
 import java.io.IOException;
+import java.time.DateTimeException;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.HashSet;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
+import java.util.TimeZone;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -35,20 +39,20 @@ import org.apache.maven.model.Resource;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.project.MavenProject;
-import org.joda.time.DateTime;
 
 import com.helger.commons.CGlobal;
 import com.helger.commons.collection.CollectionHelper;
+import com.helger.commons.collection.ext.CommonsLinkedHashMap;
+import com.helger.commons.collection.ext.ICommonsOrderedMap;
+import com.helger.commons.datetime.PDTFactory;
 import com.helger.commons.io.file.FileHelper;
 import com.helger.commons.io.file.FileIOError;
 import com.helger.commons.io.file.FileOperations;
 import com.helger.commons.io.resource.FileSystemResource;
-import com.helger.commons.microdom.util.XMLMapHandler;
 import com.helger.commons.regex.RegExHelper;
 import com.helger.commons.string.StringHelper;
 import com.helger.commons.system.SystemProperties;
-import com.helger.datetime.PDTFactory;
-import com.helger.datetime.config.PDTConfig;
+import com.helger.xml.microdom.util.XMLMapHandler;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
@@ -211,10 +215,21 @@ public final class GenerateBuildInfoMojo extends AbstractMojo
   @SuppressFBWarnings (value = "URF_UNREAD_FIELD")
   public void setTimeZone (final String sTimeZone)
   {
-    if (PDTConfig.setDefaultDateTimeZoneID (sTimeZone).isSuccess ())
+    try
+    {
+      // Try to resolve ID -> throws exception if unknown
+      final ZoneId aDefaultZoneId = ZoneId.of (sTimeZone);
+
+      // getTimeZone falls back to GMT if unknown
+      final TimeZone aDefaultTimeZone = TimeZone.getTimeZone (aDefaultZoneId);
+      TimeZone.setDefault (aDefaultTimeZone);
       timeZone = sTimeZone;
-    else
+    }
+    catch (final DateTimeException ex)
+    {
+      // time zone ID is unknown
       getLog ().warn ("Unknown time zone '" + sTimeZone + "'");
+    }
   }
 
   public void setWithAllSystemProperties (final boolean bEnable)
@@ -234,7 +249,7 @@ public final class GenerateBuildInfoMojo extends AbstractMojo
   // Important: parameter type must match member type!
   public void setSelectedSystemProperties (final Set <String> aCollection)
   {
-    selectedSystemProperties = new HashSet <String> ();
+    selectedSystemProperties = new HashSet<> ();
     if (aCollection != null)
     {
       for (final String sName : aCollection)
@@ -256,7 +271,7 @@ public final class GenerateBuildInfoMojo extends AbstractMojo
   // Important: parameter type must match member type!
   public void setIgnoredSystemProperties (final Set <String> aCollection)
   {
-    ignoredSystemProperties = new HashSet <String> ();
+    ignoredSystemProperties = new HashSet<> ();
     if (aCollection != null)
     {
       for (final String sName : aCollection)
@@ -283,7 +298,7 @@ public final class GenerateBuildInfoMojo extends AbstractMojo
   // Important: parameter type must match member type!
   public void setSelectedEnvVars (final Set <String> aCollection)
   {
-    selectedEnvVars = new HashSet <String> ();
+    selectedEnvVars = new HashSet<> ();
     if (aCollection != null)
     {
       for (final String sName : aCollection)
@@ -305,7 +320,7 @@ public final class GenerateBuildInfoMojo extends AbstractMojo
   // Important: parameter type must match member type!
   public void setIgnoredEnvVars (final Set <String> aCollection)
   {
-    ignoredEnvVars = new HashSet <String> ();
+    ignoredEnvVars = new HashSet<> ();
     if (aCollection != null)
     {
       for (final String sName : aCollection)
@@ -343,13 +358,13 @@ public final class GenerateBuildInfoMojo extends AbstractMojo
     return false;
   }
 
-  private Map <String, String> _determineBuildInfoProperties ()
+  private ICommonsOrderedMap <String, String> _determineBuildInfoProperties ()
   {
     // Get the current time, using the time zone specified in the settings
-    final DateTime aDT = PDTFactory.getCurrentDateTime ();
+    final LocalDateTime aDT = PDTFactory.getCurrentLocalDateTime ();
 
     // Build the default properties
-    final Map <String, String> aProps = new LinkedHashMap <String, String> ();
+    final ICommonsOrderedMap <String, String> aProps = new CommonsLinkedHashMap<> ();
     // Version 1: initial
     // Version 2: added dependency information; added per build plugin the key
     // property
@@ -395,7 +410,7 @@ public final class GenerateBuildInfoMojo extends AbstractMojo
     }
 
     // Build Plugins
-    final List <?> aBuildPlugins = project.getBuildPlugins ();
+    final List <Plugin> aBuildPlugins = project.getBuildPlugins ();
     if (aBuildPlugins != null)
     {
       final String sPrefix = "build.plugin.";
@@ -422,7 +437,7 @@ public final class GenerateBuildInfoMojo extends AbstractMojo
     }
 
     // Build dependencies
-    final List <?> aDependencies = project.getDependencies ();
+    final List <Dependency> aDependencies = project.getDependencies ();
     if (aDependencies != null)
     {
       final String sDepPrefix = "dependency.";
@@ -470,16 +485,18 @@ public final class GenerateBuildInfoMojo extends AbstractMojo
     }
 
     // Build date and time
+    final ZoneId aZoneID = ZoneId.systemDefault ();
+    final ZonedDateTime aZonedDT = ZonedDateTime.of (aDT, aZoneID);
     aProps.put ("build.datetime", aDT.toString ());
-    aProps.put ("build.datetime.millis", Long.toString (aDT.getMillis ()));
+    aProps.put ("build.datetime.millis", Long.toString (PDTFactory.getMillis (aDT)));
     aProps.put ("build.datetime.date", aDT.toLocalDate ().toString ());
     aProps.put ("build.datetime.time", aDT.toLocalTime ().toString ());
-    aProps.put ("build.datetime.timezone", aDT.getZone ().getID ());
-    final int nOfsMilliSecs = aDT.getZone ().getOffset (aDT);
-    aProps.put ("build.datetime.timezone.offsethours", Long.toString (nOfsMilliSecs / CGlobal.MILLISECONDS_PER_HOUR));
-    aProps.put ("build.datetime.timezone.offsetmins", Long.toString (nOfsMilliSecs / CGlobal.MILLISECONDS_PER_MINUTE));
-    aProps.put ("build.datetime.timezone.offsetsecs", Long.toString (nOfsMilliSecs / CGlobal.MILLISECONDS_PER_SECOND));
-    aProps.put ("build.datetime.timezone.offsetmillisecs", Integer.toString (nOfsMilliSecs));
+    aProps.put ("build.datetime.timezone", aZoneID.getId ());
+    final int nOfsSecs = aZonedDT.getOffset ().getTotalSeconds ();
+    aProps.put ("build.datetime.timezone.offsethours", Long.toString (nOfsSecs / CGlobal.SECONDS_PER_HOUR));
+    aProps.put ("build.datetime.timezone.offsetmins", Long.toString (nOfsSecs / CGlobal.SECONDS_PER_MINUTE));
+    aProps.put ("build.datetime.timezone.offsetsecs", Long.toString (nOfsSecs));
+    aProps.put ("build.datetime.timezone.offsetmillisecs", Long.toString (nOfsSecs * CGlobal.MILLISECONDS_PER_SECOND));
 
     // Emit system properties?
     if (withAllSystemProperties || CollectionHelper.isNotEmpty (selectedSystemProperties))
