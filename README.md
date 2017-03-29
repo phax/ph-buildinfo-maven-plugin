@@ -1,4 +1,4 @@
-#ph-buildinfo-maven-plugin
+# ph-buildinfo-maven-plugin
 
 A Maven 2/3 plugin that adds build information to the resulting artefacts.
 Tested with Maven 2.2.1, 3.0.4 and 3.2.1.
