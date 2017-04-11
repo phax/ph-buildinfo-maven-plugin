@@ -18,6 +18,8 @@ package com.helger.maven.buildinfo;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.Writer;
+import java.nio.charset.StandardCharsets;
 import java.time.DateTimeException;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -46,6 +48,7 @@ import org.apache.maven.project.MavenProject;
 import com.helger.commons.CGlobal;
 import com.helger.commons.collection.CollectionHelper;
 import com.helger.commons.datetime.PDTFactory;
+import com.helger.commons.io.EAppend;
 import com.helger.commons.io.file.FileHelper;
 import com.helger.commons.io.file.FileIOError;
 import com.helger.commons.io.file.FileOperations;
@@ -55,6 +58,8 @@ import com.helger.commons.regex.RegExHelper;
 import com.helger.commons.string.StringHelper;
 import com.helger.commons.system.SystemProperties;
 import com.helger.json.JsonArray;
+import com.helger.json.serialize.JsonWriter;
+import com.helger.json.serialize.JsonWriterSettings;
 import com.helger.xml.microdom.util.XMLMapHandler;
 
 /**
@@ -71,6 +76,8 @@ public final class GenerateBuildInfoMojo extends AbstractMojo
   private static final String DEFAULT_FILENAME_BUILDINFO_XML = "buildinfo.xml";
   /** The name of the properties file */
   private static final String DEFAULT_FILENAME_BUILDINFO_PROPERTIES = "buildinfo.properties";
+  /** The name of the JSON file */
+  private static final String DEFAULT_FILENAME_BUILDINFO_JSON = "buildinfo.json";
 
   @Parameter (property = "project", required = true, readonly = true)
   private MavenProject project;
@@ -83,7 +90,7 @@ public final class GenerateBuildInfoMojo extends AbstractMojo
    * Note: to use more values as default values, use a comma separated list such
    * as "pom,pom2,pom3" etc.
    *
-   * @since 2.0.1
+   * @since 2.1.0
    */
   @Parameter (property = "ignoredPackagings", defaultValue = "pom")
   private HashSet <String> ignoredPackagings;
@@ -190,10 +197,19 @@ public final class GenerateBuildInfoMojo extends AbstractMojo
   private boolean formatProperties = false;
 
   /**
+   * Generate build info in .json format? It is safe to generate multiple
+   * formats in one run!
+   *
+   * @since 2.1.0
+   */
+  @Parameter (property = "formatJson", defaultValue = "false")
+  private boolean formatJson = false;
+
+  /**
    * Set the target path inside the final artefact where the files should be
    * located.
    *
-   * @since 2.0.1
+   * @since 2.1.0
    */
   @Parameter (property = "targetPath", defaultValue = "META-INF", required = true)
   private String targetPath;
@@ -348,6 +364,11 @@ public final class GenerateBuildInfoMojo extends AbstractMojo
   public void setFormatProperties (final boolean bEnable)
   {
     formatProperties = bEnable;
+  }
+
+  public void setFormatJson (final boolean bEnable)
+  {
+    formatJson = bEnable;
   }
 
   public void setTargetPath (final String sTargetPath) throws MojoExecutionException
@@ -573,6 +594,21 @@ public final class GenerateBuildInfoMojo extends AbstractMojo
     getLog ().debug ("Wrote buildinfo properties file to " + aFile);
   }
 
+  private void _writeBuildinfoJson (@Nonnull final JsonProps aProps) throws MojoExecutionException
+  {
+    // Write properties file
+    final File aFile = new File (tempDirectory, DEFAULT_FILENAME_BUILDINFO_JSON);
+    try (final Writer aWriter = FileHelper.getBufferedWriter (aFile, EAppend.TRUNCATE, StandardCharsets.UTF_8))
+    {
+      new JsonWriter (new JsonWriterSettings ().setIndentEnabled (true)).writeToWriter (aProps, aWriter);
+    }
+    catch (final IOException ex)
+    {
+      throw new MojoExecutionException ("Failed to write JSON file to " + aFile, ex);
+    }
+    getLog ().debug ("Wrote buildinfo JSON file to " + aFile);
+  }
+
   public void execute () throws MojoExecutionException
   {
     if (ignoredPackagings != null && ignoredPackagings.contains (project.getPackaging ()))
@@ -590,7 +626,7 @@ public final class GenerateBuildInfoMojo extends AbstractMojo
     else
       getLog ().info ("Successfully created temp directory " + tempDirectory.getName ());
 
-    if (!formatProperties && !formatXML)
+    if (!formatXML && !formatProperties && !formatJson)
       throw new MojoExecutionException ("No buildinfo output format was specified. Nothing will be generated!");
 
     final JsonProps aProps = _determineBuildInfoProperties ();
@@ -600,6 +636,9 @@ public final class GenerateBuildInfoMojo extends AbstractMojo
 
     if (formatProperties)
       _writeBuildinfoProperties (aProps);
+
+    if (formatJson)
+      _writeBuildinfoJson (aProps);
 
     // Add output directory as a resource-directory
     final Resource aResource = new Resource ();
