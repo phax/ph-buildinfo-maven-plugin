@@ -19,8 +19,13 @@ It allows to add an XML and/or a Properties file to the resulting artefact.
     * Updated to Java 8
   * v1.3.0 - 2015-08-31
     * First version to require Maven 3.0
+    * Removed manual SLF4J integration
+    * Added support for Eclipse m2e plugin
   * v1.2.2 - 2015-03-11
-    * Last version to support Maven 2.x  
+    * Last version to support Maven 2.x
+  * v1.2.1 - 2014-09-02
+    * Tried to make compatible with Maven 2.2.1
+  * v1.2.0 - 2014-08-26
 
 ## Maven configuration
 ```xml
