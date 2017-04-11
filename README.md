@@ -4,7 +4,7 @@ A Maven 3 plugin that adds build information to the resulting artefacts.
 It allows to add an XML and/or a Properties file to the resulting artefact.
 
 # News and noteworthy
-  * v2.1.0 - work in progress
+  * v2.1.0 - 2017-04-11
     * Updated buildinfo version number to `3`
       * List of active profiles were added to build info output
       * Changed property name `build.datetime` to `build.datetime.text`
@@ -27,7 +27,7 @@ It allows to add an XML and/or a Properties file to the resulting artefact.
 <plugin>
   <groupId>com.helger.maven</groupId>
   <artifactId>ph-buildinfo-maven-plugin</artifactId>
-  <version>2.0.0</version>
+  <version>2.1.0</version>
   <executions>
     <execution>
       <goals>
@@ -38,6 +38,7 @@ It allows to add an XML and/or a Properties file to the resulting artefact.
   <configuration>
     <formatProperties>false</formatProperties>
     <formatXML>true</formatXML>
+    <formatJson>false</formatJson>
     <withAllSystemProperties>true</withAllSystemProperties>
     <selectedEnvVars>
       <param>JAVA_.*</param>
@@ -113,10 +114,11 @@ Configuration items are:
     Generate build info in .json format? It is safe to generate multiple formats in one run!  
     Defaults to `false`.
     The created file is always **targetPath** + `buildinfo.json`.
+    Since v2.1.0.
   * `String` **targetPath**
     Set the target path inside the final artefact where the files should be located.
     Defaults to `META-INF`.
-    Since v2.1.0.  
+    Since v2.1.0.
 
 ---
 
