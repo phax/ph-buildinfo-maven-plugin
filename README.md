@@ -6,7 +6,9 @@ It allows to add an XML and/or a Properties file to the resulting artefact.
 # News and noteworthy
   * v2.0.1 - work in progress
     * Updated buildinfo version number to `3`
-    * List of active profiles were added to build info output
+      * List of active profiles were added to build info output
+      * Changed property name `build.datetime` to `build.datetime.text`
+      * Changed property name `build.datetime.timezone` to `build.datetime.timezone.id`
     * Switched to Maven plugin annotations
     * Marked as thread-safe
     * Timezone is now considered

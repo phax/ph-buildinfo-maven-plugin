@@ -45,8 +45,6 @@ import org.apache.maven.project.MavenProject;
 
 import com.helger.commons.CGlobal;
 import com.helger.commons.collection.CollectionHelper;
-import com.helger.commons.collection.ext.CommonsLinkedHashMap;
-import com.helger.commons.collection.ext.ICommonsOrderedMap;
 import com.helger.commons.datetime.PDTFactory;
 import com.helger.commons.io.file.FileHelper;
 import com.helger.commons.io.file.FileIOError;
@@ -56,6 +54,7 @@ import com.helger.commons.lang.NonBlockingProperties;
 import com.helger.commons.regex.RegExHelper;
 import com.helger.commons.string.StringHelper;
 import com.helger.commons.system.SystemProperties;
+import com.helger.json.JsonArray;
 import com.helger.xml.microdom.util.XMLMapHandler;
 
 /**
@@ -376,34 +375,35 @@ public final class GenerateBuildInfoMojo extends AbstractMojo
     return false;
   }
 
-  private ICommonsOrderedMap <String, String> _determineBuildInfoProperties ()
+  @Nonnull
+  private JsonProps _determineBuildInfoProperties ()
   {
     // Get the current time, using the time zone specified in the settings
     final LocalDateTime aDT = PDTFactory.getCurrentLocalDateTime ();
 
     // Build the default properties
-    final ICommonsOrderedMap <String, String> aProps = new CommonsLinkedHashMap <> ();
+    final JsonProps aProps = new JsonProps ();
     // Version 1: initial
     // Version 2: added dependency information; added per build plugin the key
     // property
     // Version 3: added active profiles
-    aProps.put ("buildinfo.version", "3");
+    aProps.getChild ("buildinfo").add ("version", "3");
 
     // Project information
-    aProps.put ("project.groupid", project.getGroupId ());
-    aProps.put ("project.artifactid", project.getArtifactId ());
-    aProps.put ("project.version", project.getVersion ());
-    aProps.put ("project.name", project.getName ());
-    aProps.put ("project.packaging", project.getPackaging ());
+    aProps.getChild ("project").add ("groupid", project.getGroupId ());
+    aProps.getChild ("project").add ("artifactid", project.getArtifactId ());
+    aProps.getChild ("project").add ("version", project.getVersion ());
+    aProps.getChild ("project").add ("name", project.getName ());
+    aProps.getChild ("project").add ("packaging", project.getPackaging ());
 
     // Parent project information (if available)
     final MavenProject aParentProject = project.getParent ();
     if (aParentProject != null)
     {
-      aProps.put ("parentproject.groupid", aParentProject.getGroupId ());
-      aProps.put ("parentproject.artifactid", aParentProject.getArtifactId ());
-      aProps.put ("parentproject.version", aParentProject.getVersion ());
-      aProps.put ("parentproject.name", aParentProject.getName ());
+      aProps.getChild ("parentproject").add ("groupid", aParentProject.getGroupId ());
+      aProps.getChild ("parentproject").add ("artifactid", aParentProject.getArtifactId ());
+      aProps.getChild ("parentproject").add ("version", aParentProject.getVersion ());
+      aProps.getChild ("parentproject").add ("name", aParentProject.getName ());
     }
 
     // All reactor projects (nested projects)
@@ -411,126 +411,116 @@ public final class GenerateBuildInfoMojo extends AbstractMojo
     // listed
     if (reactorProjects != null && reactorProjects.size () != 1)
     {
-      final String sPrefix = "reactorproject.";
-
-      // The number of reactor projects
-      aProps.put (sPrefix + "count", Integer.toString (reactorProjects.size ()));
+      final JsonArray aList = new JsonArray ();
 
       // Show details of all reactor projects, index starting at 0
-      int nIndex = 0;
       for (final MavenProject aReactorProject : reactorProjects)
       {
-        aProps.put (sPrefix + nIndex + ".groupid", aReactorProject.getGroupId ());
-        aProps.put (sPrefix + nIndex + ".artifactid", aReactorProject.getArtifactId ());
-        aProps.put (sPrefix + nIndex + ".version", aReactorProject.getVersion ());
-        aProps.put (sPrefix + nIndex + ".name", aReactorProject.getName ());
-        ++nIndex;
+        final JsonProps aSubProps = new JsonProps ();
+        aSubProps.add ("groupid", aReactorProject.getGroupId ());
+        aSubProps.add ("artifactid", aReactorProject.getArtifactId ());
+        aSubProps.add ("version", aReactorProject.getVersion ());
+        aSubProps.add ("name", aReactorProject.getName ());
+        aList.add (aSubProps);
       }
+      aProps.add ("reactorproject", aList);
     }
 
     // Build Plugins
     final List <Plugin> aBuildPlugins = project.getBuildPlugins ();
     if (aBuildPlugins != null)
     {
-      final String sPrefix = "build.plugin.";
-      // The number of build plugins
-      aProps.put (sPrefix + "count", Integer.toString (aBuildPlugins.size ()));
+      final JsonArray aList = new JsonArray ();
 
       // Show details of all plugins, index starting at 0
-      int nIndex = 0;
       for (final Plugin aPlugin : aBuildPlugins)
       {
-        final String sCurPrefix = sPrefix + nIndex + ".";
-        aProps.put (sCurPrefix + "groupid", aPlugin.getGroupId ());
-        aProps.put (sCurPrefix + "artifactid", aPlugin.getArtifactId ());
-        aProps.put (sCurPrefix + "version", aPlugin.getVersion ());
+        final JsonProps aSubProps = new JsonProps ();
+        aSubProps.add ("groupid", aPlugin.getGroupId ());
+        aSubProps.add ("artifactid", aPlugin.getArtifactId ());
+        aSubProps.add ("version", aPlugin.getVersion ());
         final Object aConfiguration = aPlugin.getConfiguration ();
         if (aConfiguration != null)
         {
           // Will emit an XML structure!
-          aProps.put (sCurPrefix + "configuration", aConfiguration.toString ());
+          aSubProps.add ("configuration", aConfiguration.toString ());
         }
-        aProps.put (sCurPrefix + "key", aPlugin.getKey ());
-        ++nIndex;
+        aSubProps.add ("key", aPlugin.getKey ());
+        aList.add (aSubProps);
       }
+
+      aProps.getChild ("build").add ("plugin", aList);
     }
 
     // Build dependencies
     final List <Dependency> aDependencies = project.getDependencies ();
     if (aDependencies != null)
     {
-      final String sPrefix = "dependency.";
-      // The number of build plugins
-      aProps.put (sPrefix + "count", Integer.toString (aDependencies.size ()));
-
-      // Show details of all dependencies, index starting at 0
-      int nDepIndex = 0;
+      final JsonArray aList = new JsonArray ();
+      // Show details of all dependencies
       for (final Dependency aDependency : aDependencies)
       {
-        final String sCurPrefix = sPrefix + nDepIndex + ".";
-        aProps.put (sCurPrefix + "groupid", aDependency.getGroupId ());
-        aProps.put (sCurPrefix + "artifactid", aDependency.getArtifactId ());
-        aProps.put (sCurPrefix + "version", aDependency.getVersion ());
-        aProps.put (sCurPrefix + "type", aDependency.getType ());
+        final JsonProps aDepProps = new JsonProps ();
+        aDepProps.add ("groupid", aDependency.getGroupId ());
+        aDepProps.add ("artifactid", aDependency.getArtifactId ());
+        aDepProps.add ("version", aDependency.getVersion ());
+        aDepProps.add ("type", aDependency.getType ());
         if (aDependency.getClassifier () != null)
-          aProps.put (sCurPrefix + "classifier", aDependency.getClassifier ());
-        aProps.put (sCurPrefix + "scope", aDependency.getScope ());
+          aDepProps.add ("classifier", aDependency.getClassifier ());
+        aDepProps.add ("scope", aDependency.getScope ());
         if (aDependency.getSystemPath () != null)
-          aProps.put (sCurPrefix + "systempath", aDependency.getSystemPath ());
-        aProps.put (sCurPrefix + "optional", Boolean.toString (aDependency.isOptional ()));
-        aProps.put (sCurPrefix + "managementkey", aDependency.getManagementKey ());
+          aDepProps.add ("systempath", aDependency.getSystemPath ());
+        aDepProps.add ("optional", aDependency.isOptional ());
+        aDepProps.add ("managementkey", aDependency.getManagementKey ());
 
         // Add all exclusions of the current dependency
         final List <Exclusion> aExclusions = aDependency.getExclusions ();
         if (aExclusions != null)
         {
-          final String sExclusionPrefix = sCurPrefix + "exclusion.";
-          // The number of build plugins
-          aProps.put (sExclusionPrefix + "count", Integer.toString (aExclusions.size ()));
-
-          // Show details of all dependencies, index starting at 0
-          int nExclusionIndex = 0;
+          final JsonArray aExclusionList = new JsonArray ();
           for (final Exclusion aExclusion : aExclusions)
           {
-            final String sCurExclusionPrefix = sExclusionPrefix + nExclusionIndex + ".";
-            aProps.put (sCurExclusionPrefix + "groupid", aExclusion.getGroupId ());
-            aProps.put (sCurExclusionPrefix + "artifactid", aExclusion.getArtifactId ());
-            ++nExclusionIndex;
+            final JsonProps aExclusionProps = new JsonProps ();
+            aExclusionProps.add ("groupid", aExclusion.getGroupId ());
+            aExclusionProps.add ("artifactid", aExclusion.getArtifactId ());
+            aExclusionList.add (aExclusionProps);
           }
+          aDepProps.add ("exclusion", aExclusionList);
         }
-
-        ++nDepIndex;
+        aList.add (aDepProps);
       }
+      aProps.add ("dependency", aList);
     }
 
     // Active profiles (V3)
     final List <Profile> aActiveProfiles = project.getActiveProfiles ();
     if (aActiveProfiles != null)
     {
-      final String sPrefix = "profiles.";
-      aProps.put (sPrefix + "count", Integer.toString (aActiveProfiles.size ()));
-      int nIndex = 0;
+      final JsonArray aList = new JsonArray ();
+
       for (final Profile aProfile : aActiveProfiles)
       {
-        final String sCurPrefix = sPrefix + nIndex + ".";
-        aProps.put (sCurPrefix + "id", aProfile.getId ());
-        ++nIndex;
+        final JsonProps aSubProps = new JsonProps ();
+        aSubProps.add ("id", aProfile.getId ());
+        aList.add (aSubProps);
       }
+      aProps.add ("profiles", aList);
     }
 
     // Build date and time
     final ZoneId aZoneID = timeZone != null ? ZoneId.of (timeZone) : ZoneId.systemDefault ();
     final ZonedDateTime aZonedDT = ZonedDateTime.of (aDT, aZoneID);
-    aProps.put ("build.datetime", aDT.toString ());
-    aProps.put ("build.datetime.millis", Long.toString (PDTFactory.getMillis (aDT)));
-    aProps.put ("build.datetime.date", aDT.toLocalDate ().toString ());
-    aProps.put ("build.datetime.time", aDT.toLocalTime ().toString ());
-    aProps.put ("build.datetime.timezone", aZoneID.getId ());
     final int nOfsSecs = aZonedDT.getOffset ().getTotalSeconds ();
-    aProps.put ("build.datetime.timezone.offsethours", Long.toString (nOfsSecs / CGlobal.SECONDS_PER_HOUR));
-    aProps.put ("build.datetime.timezone.offsetmins", Long.toString (nOfsSecs / CGlobal.SECONDS_PER_MINUTE));
-    aProps.put ("build.datetime.timezone.offsetsecs", Long.toString (nOfsSecs));
-    aProps.put ("build.datetime.timezone.offsetmillisecs", Long.toString (nOfsSecs * CGlobal.MILLISECONDS_PER_SECOND));
+    aProps.getChildren ("build", "datetime").add ("text", aDT.toString ());
+    aProps.getChildren ("build", "datetime").add ("millis", PDTFactory.getMillis (aDT));
+    aProps.getChildren ("build", "datetime").add ("date", aDT.toLocalDate ().toString ());
+    aProps.getChildren ("build", "datetime").add ("time", aDT.toLocalTime ().toString ());
+    aProps.getChildren ("build", "datetime", "timezone").add ("id", aZoneID.getId ());
+    aProps.getChildren ("build", "datetime", "timezone").add ("offsethours", nOfsSecs / CGlobal.SECONDS_PER_HOUR);
+    aProps.getChildren ("build", "datetime", "timezone").add ("offsetmins", nOfsSecs / CGlobal.SECONDS_PER_MINUTE);
+    aProps.getChildren ("build", "datetime", "timezone").add ("offsetsecs", nOfsSecs);
+    aProps.getChildren ("build", "datetime", "timezone").add ("offsetmillisecs",
+                                                              nOfsSecs * CGlobal.MILLISECONDS_PER_SECOND);
 
     // Emit system properties?
     if (withAllSystemProperties || CollectionHelper.isNotEmpty (selectedSystemProperties))
@@ -540,7 +530,7 @@ public final class GenerateBuildInfoMojo extends AbstractMojo
         final String sName = aEntry.getKey ();
         if (withAllSystemProperties || _matches (selectedSystemProperties, sName))
           if (!_matches (ignoredSystemProperties, sName))
-            aProps.put ("systemproperty." + sName, aEntry.getValue ());
+            aProps.getChild ("systemproperty").add (sName, aEntry.getValue ());
       }
 
     // Emit environment variable?
@@ -550,28 +540,28 @@ public final class GenerateBuildInfoMojo extends AbstractMojo
         final String sName = aEntry.getKey ();
         if (withAllEnvVars || _matches (selectedEnvVars, sName))
           if (!_matches (ignoredEnvVars, sName))
-            aProps.put ("envvar." + sName, aEntry.getValue ());
+            aProps.getChild ("envvar").add (sName, aEntry.getValue ());
       }
 
     return aProps;
   }
 
-  private void _writeBuildinfoXMLv1 (@Nonnull final Map <String, String> aProps) throws MojoExecutionException
+  private void _writeBuildinfoXMLv1 (@Nonnull final JsonProps aProps) throws MojoExecutionException
   {
     // Write the XML in the format that it can easily be read by the
     // com.helger.common.microdom.reader.XMLMapHandler class
     final File aFile = new File (tempDirectory, DEFAULT_FILENAME_BUILDINFO_XML);
-    if (XMLMapHandler.writeMap (aProps, new FileSystemResource (aFile)).isFailure ())
+    if (XMLMapHandler.writeMap (aProps.getAsFlatList (), new FileSystemResource (aFile)).isFailure ())
       throw new MojoExecutionException ("Failed to write XML file to " + aFile);
     getLog ().debug ("Wrote buildinfo XML file to " + aFile);
   }
 
-  private void _writeBuildinfoProperties (@Nonnull final Map <String, String> aProps) throws MojoExecutionException
+  private void _writeBuildinfoProperties (@Nonnull final JsonProps aProps) throws MojoExecutionException
   {
     // Write properties file
     final File aFile = new File (tempDirectory, DEFAULT_FILENAME_BUILDINFO_PROPERTIES);
     final NonBlockingProperties p = new NonBlockingProperties ();
-    p.putAll (aProps);
+    p.putAll (aProps.getAsFlatList ());
     try
     {
       p.store (FileHelper.getOutputStream (aFile), "Generated - do not edit!");
@@ -603,7 +593,7 @@ public final class GenerateBuildInfoMojo extends AbstractMojo
     if (!formatProperties && !formatXML)
       throw new MojoExecutionException ("No buildinfo output format was specified. Nothing will be generated!");
 
-    final ICommonsOrderedMap <String, String> aProps = _determineBuildInfoProperties ();
+    final JsonProps aProps = _determineBuildInfoProperties ();
 
     if (formatXML)
       _writeBuildinfoXMLv1 (aProps);
