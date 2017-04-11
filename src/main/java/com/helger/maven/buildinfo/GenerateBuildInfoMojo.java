@@ -25,7 +25,6 @@ import java.time.ZonedDateTime;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 import java.util.Set;
 import java.util.TimeZone;
 
@@ -35,9 +34,13 @@ import javax.annotation.Nullable;
 import org.apache.maven.model.Dependency;
 import org.apache.maven.model.Exclusion;
 import org.apache.maven.model.Plugin;
+import org.apache.maven.model.Profile;
 import org.apache.maven.model.Resource;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.plugins.annotations.LifecyclePhase;
+import org.apache.maven.plugins.annotations.Mojo;
+import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
 
 import com.helger.commons.CGlobal;
@@ -49,23 +52,20 @@ import com.helger.commons.io.file.FileHelper;
 import com.helger.commons.io.file.FileIOError;
 import com.helger.commons.io.file.FileOperations;
 import com.helger.commons.io.resource.FileSystemResource;
+import com.helger.commons.lang.NonBlockingProperties;
 import com.helger.commons.regex.RegExHelper;
 import com.helger.commons.string.StringHelper;
 import com.helger.commons.system.SystemProperties;
 import com.helger.xml.microdom.util.XMLMapHandler;
 
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-
 /**
  * @author Philip Helger
- * @goal generate-buildinfo
- * @phase generate-resources
  * @description Create build information at compile time. The information will
  *              be part of the created JAR/WAR/... file. The resulting file will
  *              reside in the <code>META-INF</code> directory of the created
  *              artifact.
  */
-@SuppressFBWarnings (value = { "UWF_UNWRITTEN_FIELD", "NP_UNWRITTEN_FIELD" }, justification = "set via maven property")
+@Mojo (name = "generate-buildinfo", defaultPhase = LifecyclePhase.GENERATE_RESOURCES, threadSafe = true)
 public final class GenerateBuildInfoMojo extends AbstractMojo
 {
   /** The name of the XML file */
@@ -73,38 +73,36 @@ public final class GenerateBuildInfoMojo extends AbstractMojo
   /** The name of the properties file */
   private static final String DEFAULT_FILENAME_BUILDINFO_PROPERTIES = "buildinfo.properties";
 
-  /**
-   * The Maven Project.
-   *
-   * @parameter property=project
-   * @required
-   * @readonly
-   */
+  @Parameter (property = "project", required = true, readonly = true)
   private MavenProject project;
 
-  /**
-   * @parameter property=reactorProjects
-   * @required
-   * @readonly
-   */
+  @Parameter (property = "reactorProjects", required = true, readonly = true)
   private List <MavenProject> reactorProjects;
 
   /**
-   * The directory where the temporary buildinfo files will be saved.
-   *
-   * @required
-   * @parameter property=tempDirectory default-value=
-   *            "${project.build.directory}/buildinfo-maven-plugin"
+   * A set of ignored packagings for which the buildinfo plugin is not executed.
+   * Note: to use more values as default values, use a comma separated list such
+   * as "pom,pom2,pom3" etc.
+   * 
+   * @since 2.0.1
    */
+  @Parameter (property = "ignoredPackagings", defaultValue = "pom")
+  private HashSet <String> ignoredPackagings;
+
+  /**
+   * The directory where the temporary buildinfo files will be saved.
+   */
+  @Parameter (property = "tempDirectory",
+              defaultValue = "${project.build.directory}/buildinfo-maven-plugin",
+              required = true)
   private File tempDirectory;
 
   /**
    * Set the time zone to be used. Use "UTC" for the universal timezone.
-   * Otherwise Strings like "Europe/Vienna" should be used.
-   *
-   * @parameter property="timeZone"
+   * Otherwise Strings like "Europe/Vienna" should be used. If unspecified, the
+   * system default time zone is used.
    */
-  @SuppressWarnings ("unused")
+  @Parameter (property = "timeZone")
   private String timeZone;
 
   /**
@@ -113,9 +111,8 @@ public final class GenerateBuildInfoMojo extends AbstractMojo
    * the selectedSystemProperties should be used.<br>
    * All contained system properties are prefixed with
    * <code>systemproperty.</code> in the generated file.
-   *
-   * @parameter property="withAllSystemProperties" default-value="false"
    */
+  @Parameter (property = "withAllSystemProperties", defaultValue = "false")
   private boolean withAllSystemProperties = false;
 
   /**
@@ -125,9 +122,8 @@ public final class GenerateBuildInfoMojo extends AbstractMojo
    * to be enabled.<br>
    * All contained system properties are prefixed with
    * <code>systemproperty.</code> in the generated file.
-   *
-   * @parameter property="selectedSystemProperties"
    */
+  @Parameter (property = "selectedSystemProperties")
   private HashSet <String> selectedSystemProperties;
 
   /**
@@ -136,9 +132,8 @@ public final class GenerateBuildInfoMojo extends AbstractMojo
    * Ignored system properties take precedence over selected system properties.
    * They are also ignored if withAllSystemProperties is set to
    * <code>true</code>.
-   *
-   * @parameter property="ignoredSystemProperties"
    */
+  @Parameter (property = "ignoredSystemProperties")
   private HashSet <String> ignoredSystemProperties;
 
   /**
@@ -147,9 +142,8 @@ public final class GenerateBuildInfoMojo extends AbstractMojo
    * selectedEnvVars should be used.<br>
    * All contained environment variables are prefixed with <code>envvar.</code>
    * in the generated file.
-   *
-   * @parameter property="withAllEnvVars" default-value="false"
    */
+  @Parameter (property = "withAllEnvVars", defaultValue = "false")
   private boolean withAllEnvVars = false;
 
   /**
@@ -159,9 +153,8 @@ public final class GenerateBuildInfoMojo extends AbstractMojo
    * does not need to be enabled.<br>
    * All contained environment variables are prefixed with <code>envvar.</code>
    * in the generated file.
-   *
-   * @parameter property="selectedEnvVars"
    */
+  @Parameter (property = "selectedEnvVars")
   private HashSet <String> selectedEnvVars;
 
   /**
@@ -170,9 +163,8 @@ public final class GenerateBuildInfoMojo extends AbstractMojo
    * environment variables. Ignored environment variables take precedence over
    * selected environment variables. They are also ignored if withAllEnvVars is
    * set to <code>true</code>.
-   *
-   * @parameter property="ignoredEnvVars"
    */
+  @Parameter (property = "ignoredEnvVars")
   private HashSet <String> ignoredEnvVars;
 
   /**
@@ -182,37 +174,42 @@ public final class GenerateBuildInfoMojo extends AbstractMojo
    *
    * <pre>
    * &lt;mapping&gt;
-   *   &lt;map key="buildinfo.version" value="2" /&gt;
+   *   &lt;map key="buildinfo.version" value="3" /&gt;
    *   &lt;map key="project.groupid" value="com.helger.maven" /&gt;
    *   ...
    * &lt;/mapping&gt;
    * </pre>
-   *
-   * @parameter property="formatXML" default-value="true"
    */
+  @Parameter (property = "formatXML", defaultValue = "true")
   private boolean formatXML = true;
 
   /**
    * Generate build info in .properties format? It is safe to generate multiple
    * formats in one run!
-   *
-   * @parameter property="formatProperties" default-value="false"
    */
+  @Parameter (property = "formatProperties", defaultValue = "false")
   private boolean formatProperties = false;
+
+  // Important: parameter type must match member type!
+  public void setIgnoredPackagings (final Set <String> aCollection)
+  {
+    ignoredPackagings = new HashSet <> ();
+    if (aCollection != null)
+    {
+      for (final String sName : aCollection)
+        if (StringHelper.hasText (sName))
+          if (!ignoredPackagings.add (sName))
+            getLog ().warn ("The ignored packaging '" + sName + "' is contained more than once");
+    }
+  }
 
   public void setTempDirectory (@Nonnull final File aDir)
   {
     tempDirectory = aDir;
     if (!tempDirectory.isAbsolute ())
       tempDirectory = new File (project.getBasedir (), aDir.getPath ());
-    final FileIOError aResult = FileOperations.createDirRecursiveIfNotExisting (tempDirectory);
-    if (aResult.isFailure ())
-      getLog ().error ("Failed to create temp directory " + aResult.toString ());
-    else
-      getLog ().info ("Successfully created temp directory " + aDir.toString ());
   }
 
-  @SuppressFBWarnings (value = "URF_UNREAD_FIELD")
   public void setTimeZone (final String sTimeZone)
   {
     try
@@ -249,7 +246,7 @@ public final class GenerateBuildInfoMojo extends AbstractMojo
   // Important: parameter type must match member type!
   public void setSelectedSystemProperties (final Set <String> aCollection)
   {
-    selectedSystemProperties = new HashSet<> ();
+    selectedSystemProperties = new HashSet <> ();
     if (aCollection != null)
     {
       for (final String sName : aCollection)
@@ -271,7 +268,7 @@ public final class GenerateBuildInfoMojo extends AbstractMojo
   // Important: parameter type must match member type!
   public void setIgnoredSystemProperties (final Set <String> aCollection)
   {
-    ignoredSystemProperties = new HashSet<> ();
+    ignoredSystemProperties = new HashSet <> ();
     if (aCollection != null)
     {
       for (final String sName : aCollection)
@@ -298,7 +295,7 @@ public final class GenerateBuildInfoMojo extends AbstractMojo
   // Important: parameter type must match member type!
   public void setSelectedEnvVars (final Set <String> aCollection)
   {
-    selectedEnvVars = new HashSet<> ();
+    selectedEnvVars = new HashSet <> ();
     if (aCollection != null)
     {
       for (final String sName : aCollection)
@@ -320,7 +317,7 @@ public final class GenerateBuildInfoMojo extends AbstractMojo
   // Important: parameter type must match member type!
   public void setIgnoredEnvVars (final Set <String> aCollection)
   {
-    ignoredEnvVars = new HashSet<> ();
+    ignoredEnvVars = new HashSet <> ();
     if (aCollection != null)
     {
       for (final String sName : aCollection)
@@ -364,11 +361,12 @@ public final class GenerateBuildInfoMojo extends AbstractMojo
     final LocalDateTime aDT = PDTFactory.getCurrentLocalDateTime ();
 
     // Build the default properties
-    final ICommonsOrderedMap <String, String> aProps = new CommonsLinkedHashMap<> ();
+    final ICommonsOrderedMap <String, String> aProps = new CommonsLinkedHashMap <> ();
     // Version 1: initial
     // Version 2: added dependency information; added per build plugin the key
     // property
-    aProps.put ("buildinfo.version", "2");
+    // Version 3: added active profiles
+    aProps.put ("buildinfo.version", "3");
 
     // Project information
     aProps.put ("project.groupid", project.getGroupId ());
@@ -419,19 +417,19 @@ public final class GenerateBuildInfoMojo extends AbstractMojo
 
       // Show details of all plugins, index starting at 0
       int nIndex = 0;
-      for (final Object aObj : aBuildPlugins)
+      for (final Plugin aPlugin : aBuildPlugins)
       {
-        final Plugin aPlugin = (Plugin) aObj;
-        aProps.put (sPrefix + nIndex + ".groupid", aPlugin.getGroupId ());
-        aProps.put (sPrefix + nIndex + ".artifactid", aPlugin.getArtifactId ());
-        aProps.put (sPrefix + nIndex + ".version", aPlugin.getVersion ());
+        final String sCurPrefix = sPrefix + nIndex + ".";
+        aProps.put (sCurPrefix + "groupid", aPlugin.getGroupId ());
+        aProps.put (sCurPrefix + "artifactid", aPlugin.getArtifactId ());
+        aProps.put (sCurPrefix + "version", aPlugin.getVersion ());
         final Object aConfiguration = aPlugin.getConfiguration ();
         if (aConfiguration != null)
         {
           // Will emit an XML structure!
-          aProps.put (sPrefix + nIndex + ".configuration", aConfiguration.toString ());
+          aProps.put (sCurPrefix + "configuration", aConfiguration.toString ());
         }
-        aProps.put (sPrefix + nIndex + ".key", aPlugin.getKey ());
+        aProps.put (sCurPrefix + "key", aPlugin.getKey ());
         ++nIndex;
       }
     }
@@ -440,42 +438,42 @@ public final class GenerateBuildInfoMojo extends AbstractMojo
     final List <Dependency> aDependencies = project.getDependencies ();
     if (aDependencies != null)
     {
-      final String sDepPrefix = "dependency.";
+      final String sPrefix = "dependency.";
       // The number of build plugins
-      aProps.put (sDepPrefix + "count", Integer.toString (aDependencies.size ()));
+      aProps.put (sPrefix + "count", Integer.toString (aDependencies.size ()));
 
       // Show details of all dependencies, index starting at 0
       int nDepIndex = 0;
-      for (final Object aDepObj : aDependencies)
+      for (final Dependency aDependency : aDependencies)
       {
-        final Dependency aDependency = (Dependency) aDepObj;
-        aProps.put (sDepPrefix + nDepIndex + ".groupid", aDependency.getGroupId ());
-        aProps.put (sDepPrefix + nDepIndex + ".artifactid", aDependency.getArtifactId ());
-        aProps.put (sDepPrefix + nDepIndex + ".version", aDependency.getVersion ());
-        aProps.put (sDepPrefix + nDepIndex + ".type", aDependency.getType ());
+        final String sCurPrefix = sPrefix + nDepIndex + ".";
+        aProps.put (sCurPrefix + "groupid", aDependency.getGroupId ());
+        aProps.put (sCurPrefix + "artifactid", aDependency.getArtifactId ());
+        aProps.put (sCurPrefix + "version", aDependency.getVersion ());
+        aProps.put (sCurPrefix + "type", aDependency.getType ());
         if (aDependency.getClassifier () != null)
-          aProps.put (sDepPrefix + nDepIndex + ".classifier", aDependency.getClassifier ());
-        aProps.put (sDepPrefix + nDepIndex + ".scope", aDependency.getScope ());
+          aProps.put (sCurPrefix + "classifier", aDependency.getClassifier ());
+        aProps.put (sCurPrefix + "scope", aDependency.getScope ());
         if (aDependency.getSystemPath () != null)
-          aProps.put (sDepPrefix + nDepIndex + ".systempath", aDependency.getSystemPath ());
-        aProps.put (sDepPrefix + nDepIndex + ".optional", Boolean.toString (aDependency.isOptional ()));
-        aProps.put (sDepPrefix + nDepIndex + ".managementkey", aDependency.getManagementKey ());
+          aProps.put (sCurPrefix + "systempath", aDependency.getSystemPath ());
+        aProps.put (sCurPrefix + "optional", Boolean.toString (aDependency.isOptional ()));
+        aProps.put (sCurPrefix + "managementkey", aDependency.getManagementKey ());
 
         // Add all exclusions of the current dependency
-        final List <?> aExclusions = aDependency.getExclusions ();
+        final List <Exclusion> aExclusions = aDependency.getExclusions ();
         if (aExclusions != null)
         {
-          final String sExclusionPrefix = sDepPrefix + nDepIndex + ".exclusion.";
+          final String sExclusionPrefix = sCurPrefix + "exclusion.";
           // The number of build plugins
           aProps.put (sExclusionPrefix + "count", Integer.toString (aExclusions.size ()));
 
           // Show details of all dependencies, index starting at 0
           int nExclusionIndex = 0;
-          for (final Object aExclusionObj : aExclusions)
+          for (final Exclusion aExclusion : aExclusions)
           {
-            final Exclusion aExclusion = (Exclusion) aExclusionObj;
-            aProps.put (sExclusionPrefix + nExclusionIndex + ".groupid", aExclusion.getGroupId ());
-            aProps.put (sExclusionPrefix + nExclusionIndex + ".artifactid", aExclusion.getArtifactId ());
+            final String sCurExclusionPrefix = sExclusionPrefix + nExclusionIndex + ".";
+            aProps.put (sCurExclusionPrefix + "groupid", aExclusion.getGroupId ());
+            aProps.put (sCurExclusionPrefix + "artifactid", aExclusion.getArtifactId ());
             ++nExclusionIndex;
           }
         }
@@ -484,8 +482,23 @@ public final class GenerateBuildInfoMojo extends AbstractMojo
       }
     }
 
+    // Active profiles (V3)
+    final List <Profile> aActiveProfiles = project.getActiveProfiles ();
+    if (aActiveProfiles != null)
+    {
+      final String sPrefix = "profiles.";
+      aProps.put (sPrefix + "count", Integer.toString (aActiveProfiles.size ()));
+      int nIndex = 0;
+      for (final Profile aProfile : aActiveProfiles)
+      {
+        final String sCurPrefix = sPrefix + nIndex + ".";
+        aProps.put (sCurPrefix + "id", aProfile.getId ());
+        ++nIndex;
+      }
+    }
+
     // Build date and time
-    final ZoneId aZoneID = ZoneId.systemDefault ();
+    final ZoneId aZoneID = timeZone != null ? ZoneId.of (timeZone) : ZoneId.systemDefault ();
     final ZonedDateTime aZonedDT = ZonedDateTime.of (aDT, aZoneID);
     aProps.put ("build.datetime", aDT.toString ());
     aProps.put ("build.datetime.millis", Long.toString (PDTFactory.getMillis (aDT)));
@@ -536,7 +549,7 @@ public final class GenerateBuildInfoMojo extends AbstractMojo
   {
     // Write properties file
     final File aFile = new File (tempDirectory, DEFAULT_FILENAME_BUILDINFO_PROPERTIES);
-    final Properties p = new Properties ();
+    final NonBlockingProperties p = new NonBlockingProperties ();
     p.putAll (aProps);
     try
     {
@@ -551,24 +564,31 @@ public final class GenerateBuildInfoMojo extends AbstractMojo
 
   public void execute () throws MojoExecutionException
   {
+    if (ignoredPackagings != null && ignoredPackagings.contains (project.getPackaging ()))
+    {
+      // Do not execute for "POM" only projects
+      getLog ().info ("Not executing buildinfo plugin because the packaging '" +
+                      project.getPackaging () +
+                      "' is ignored.");
+      return;
+    }
+
     if (tempDirectory == null)
       throw new MojoExecutionException ("No buildinfo temp directory specified!");
     if (tempDirectory.exists () && !tempDirectory.isDirectory ())
       throw new MojoExecutionException ("The specified buildinfo temp directory " +
                                         tempDirectory +
                                         " is not a directory!");
-    if (!tempDirectory.exists ())
-    {
-      // Ensure that the directory exists
-      if (!tempDirectory.mkdirs ())
-        throw new MojoExecutionException ("Failed to create buildinfo temp directory " + tempDirectory);
-      getLog ().info ("Created buildinfo temp directory " + tempDirectory);
-    }
+    final FileIOError aResult = FileOperations.createDirRecursiveIfNotExisting (tempDirectory);
+    if (aResult.isFailure ())
+      getLog ().error ("Failed to create temp directory " + tempDirectory.getName () + ": " + aResult.toString ());
+    else
+      getLog ().info ("Successfully created temp directory " + tempDirectory.getName ());
 
     if (!formatProperties && !formatXML)
       throw new MojoExecutionException ("No buildinfo output format was specified. Nothing will be generated!");
 
-    final Map <String, String> aProps = _determineBuildInfoProperties ();
+    final ICommonsOrderedMap <String, String> aProps = _determineBuildInfoProperties ();
 
     if (formatXML)
       _writeBuildinfoXML (aProps);

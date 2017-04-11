@@ -1,50 +1,67 @@
 # ph-buildinfo-maven-plugin
 
-A Maven 2/3 plugin that adds build information to the resulting artefacts.
-Tested with Maven 2.2.1, 3.0.4 and 3.2.1.
+A Maven 3 plugin that adds build information to the resulting artefacts.
+It allows to add an XML and/or a Properties file to the resulting artefact.
 
-Note: version 1.3.0+ require Maven 3.0. Latest version for Maven 2.x is 1.2.2.
+# News and noteworthy
+  * v2.0.1 - work in progress
+    * Updated buildinfo version number to `3`
+    * List of active profiles were added to build info output
+    * Switched to Maven plugin annotations
+    * Marked as thread-safe
+    * Timezone is now considered
+    * Added new property `ignoredPackagings` to 
+  * v2.0.0 - 2016-07-01
+    * Updated to Java 8
+  * v1.3.0 - 2015-08-31
+    * First version to require Maven 3.0
+  * v1.2.2 - 2015-03-11
+    * Last version to support Maven 2.x  
 
 ## Maven configuration
 ```xml
-      <plugin>
-        <groupId>com.helger.maven</groupId>
-        <artifactId>ph-buildinfo-maven-plugin</artifactId>
-        <version>1.3.0</version>
-        <executions>
-          <execution>
-            <goals>
-              <goal>generate-buildinfo</goal>
-            </goals>
-          </execution>
-        </executions>
-        <configuration>
-          <formatProperties>false</formatProperties>
-          <formatXML>true</formatXML>
-          <withAllSystemProperties>true</withAllSystemProperties>
-          <selectedEnvVars>
-            <param>JAVA_.*</param>
-            <param>M2_.*</param>
-            <param>MAVEN_.*</param>
-            <param>NUMBER_OF_PROCESSORS</param>
-            <param>OS</param>
-            <param>PROCESSOR_.*</param>
-          </selectedEnvVars>
-        </configuration>
-      </plugin>
+<plugin>
+  <groupId>com.helger.maven</groupId>
+  <artifactId>ph-buildinfo-maven-plugin</artifactId>
+  <version>2.0.0</version>
+  <executions>
+    <execution>
+      <goals>
+        <goal>generate-buildinfo</goal>
+      </goals>
+    </execution>
+  </executions>
+  <configuration>
+    <formatProperties>false</formatProperties>
+    <formatXML>true</formatXML>
+    <withAllSystemProperties>true</withAllSystemProperties>
+    <selectedEnvVars>
+      <param>JAVA_.*</param>
+      <param>M2_.*</param>
+      <param>MAVEN_.*</param>
+      <param>NUMBER_OF_PROCESSORS</param>
+      <param>OS</param>
+      <param>PROCESSOR_.*</param>
+    </selectedEnvVars>
+  </configuration>
+</plugin>
 ```
 
 Configuration items are:
 
+  * `HashSet <String>` **ignoredPackagings**
+    A set of ignored packagings for which the buildinfo plugin is not executed.
+    Defaults to `pom`.
+    Since v2.0.1 
   * `File` **tempDirectory**  
-     The directory where the temporary buildinfo files will be saved.  
-     Defaults to `${project.build.directory}/buildinfo-maven-plugin`
+    The directory where the temporary buildinfo files will be saved.  
+    Defaults to `${project.build.directory}/buildinfo-maven-plugin`
   * `boolean` **withAllSystemProperties**  
-     Should all system properties be emitted into the build info? 
-     If this flag is set, the **selectedSystemProperties** are cleared, so either this flag or
-     the **selectedSystemProperties** should be used. All contained system properties are prefixed with
-     `systemproperty.` in the generated file.  
-     Defaults to `false`
+    Should all system properties be emitted into the build info? 
+    If this flag is set, the **selectedSystemProperties** are cleared, so either this flag or
+    the **selectedSystemProperties** should be used. All contained system properties are prefixed with
+    `systemproperty.` in the generated file.  
+    Defaults to `false`.
   * `HashSet <String>` **selectedSystemProperties**  
      A selected subset of system property names 
      to be emitted. Each element can be a regular expression to match more than one potential 
@@ -78,7 +95,7 @@ Configuration items are:
      The generated file has the following layout:
 ```xml     
 <mapping>
-  <map key="buildinfo.version" value="2" />
+  <map key="buildinfo.version" value="3" />
   <map key="project.groupid" value="com.helger.maven" />
   ...
 </mapping>
