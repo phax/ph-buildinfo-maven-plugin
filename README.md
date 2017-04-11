@@ -10,7 +10,8 @@ It allows to add an XML and/or a Properties file to the resulting artefact.
     * Switched to Maven plugin annotations
     * Marked as thread-safe
     * Timezone is now considered
-    * Added new property `ignoredPackagings` to 
+    * Added new property `ignoredPackagings` to define Maven packagings to be ignored for this plugin.
+    * Added new property `targetPath` to define the path in the final artefact
   * v2.0.0 - 2016-07-01
     * Updated to Java 8
   * v1.3.0 - 2015-08-31
@@ -102,9 +103,13 @@ Configuration items are:
 ```
 
   * `boolean` **formatProperties**  
-     Generate build info in .properties format? It is safe to generate multiple formats in one run!  
-     Defaults to `false`.  
-     The created file is always `META-INF/buildinfo.properties`.
+    Generate build info in .properties format? It is safe to generate multiple formats in one run!  
+    Defaults to `false`.  
+    The created file is always `META-INF/buildinfo.properties`.
+  * `String` **targetPath**
+    Set the target path inside the final artefact where the files should be located.
+    Defaults to `META-INF`.
+    Since v2.0.1.  
 
 ---
 

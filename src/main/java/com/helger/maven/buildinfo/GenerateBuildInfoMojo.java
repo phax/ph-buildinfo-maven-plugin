@@ -83,7 +83,7 @@ public final class GenerateBuildInfoMojo extends AbstractMojo
    * A set of ignored packagings for which the buildinfo plugin is not executed.
    * Note: to use more values as default values, use a comma separated list such
    * as "pom,pom2,pom3" etc.
-   * 
+   *
    * @since 2.0.1
    */
   @Parameter (property = "ignoredPackagings", defaultValue = "pom")
@@ -190,6 +190,15 @@ public final class GenerateBuildInfoMojo extends AbstractMojo
   @Parameter (property = "formatProperties", defaultValue = "false")
   private boolean formatProperties = false;
 
+  /**
+   * Set the target path inside the final artefact where the files should be
+   * located.
+   *
+   * @since 2.0.1
+   */
+  @Parameter (property = "targetPath", defaultValue = "META-INF", required = true)
+  private String targetPath;
+
   // Important: parameter type must match member type!
   public void setIgnoredPackagings (final Set <String> aCollection)
   {
@@ -203,8 +212,13 @@ public final class GenerateBuildInfoMojo extends AbstractMojo
     }
   }
 
-  public void setTempDirectory (@Nonnull final File aDir)
+  public void setTempDirectory (@Nonnull final File aDir) throws MojoExecutionException
   {
+    if (aDir == null)
+      throw new MojoExecutionException ("No buildinfo temp directory specified!");
+    if (aDir.exists () && !aDir.isDirectory ())
+      throw new MojoExecutionException ("The specified buildinfo temp directory " + aDir + " is not a directory!");
+
     tempDirectory = aDir;
     if (!tempDirectory.isAbsolute ())
       tempDirectory = new File (project.getBasedir (), aDir.getPath ());
@@ -335,6 +349,13 @@ public final class GenerateBuildInfoMojo extends AbstractMojo
   public void setFormatProperties (final boolean bEnable)
   {
     formatProperties = bEnable;
+  }
+
+  public void setTargetPath (final String sTargetPath) throws MojoExecutionException
+  {
+    if (sTargetPath == null)
+      throw new MojoExecutionException ("targetPath may not be null");
+    targetPath = sTargetPath;
   }
 
   private static boolean _matches (@Nullable final Set <String> aSet, @Nonnull final String sName)
@@ -535,7 +556,7 @@ public final class GenerateBuildInfoMojo extends AbstractMojo
     return aProps;
   }
 
-  private void _writeBuildinfoXML (@Nonnull final Map <String, String> aProps) throws MojoExecutionException
+  private void _writeBuildinfoXMLv1 (@Nonnull final Map <String, String> aProps) throws MojoExecutionException
   {
     // Write the XML in the format that it can easily be read by the
     // com.helger.common.microdom.reader.XMLMapHandler class
@@ -573,12 +594,6 @@ public final class GenerateBuildInfoMojo extends AbstractMojo
       return;
     }
 
-    if (tempDirectory == null)
-      throw new MojoExecutionException ("No buildinfo temp directory specified!");
-    if (tempDirectory.exists () && !tempDirectory.isDirectory ())
-      throw new MojoExecutionException ("The specified buildinfo temp directory " +
-                                        tempDirectory +
-                                        " is not a directory!");
     final FileIOError aResult = FileOperations.createDirRecursiveIfNotExisting (tempDirectory);
     if (aResult.isFailure ())
       getLog ().error ("Failed to create temp directory " + tempDirectory.getName () + ": " + aResult.toString ());
@@ -591,7 +606,7 @@ public final class GenerateBuildInfoMojo extends AbstractMojo
     final ICommonsOrderedMap <String, String> aProps = _determineBuildInfoProperties ();
 
     if (formatXML)
-      _writeBuildinfoXML (aProps);
+      _writeBuildinfoXMLv1 (aProps);
 
     if (formatProperties)
       _writeBuildinfoProperties (aProps);
@@ -601,7 +616,7 @@ public final class GenerateBuildInfoMojo extends AbstractMojo
     aResource.setDirectory (tempDirectory.getAbsolutePath ());
     aResource.addInclude ("**/*");
     aResource.setFiltering (false);
-    aResource.setTargetPath ("META-INF");
+    aResource.setTargetPath (targetPath);
     project.addResource (aResource);
   }
 }
