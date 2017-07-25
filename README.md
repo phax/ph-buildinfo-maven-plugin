@@ -4,6 +4,8 @@ A Maven 3 plugin that adds build information to the resulting artefacts.
 It allows to add an XML and/or a Properties file to the resulting artefact.
 
 # News and noteworthy
+  * v3.0.0 - work in progress
+    * Updated to ph-commons 9.0.0
   * v2.1.0 - 2017-04-11
     * Updated buildinfo version number to `3`
       * List of active profiles were added to build info output
