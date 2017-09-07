@@ -59,7 +59,7 @@ final class JsonProps extends JsonObject
       if (aJson.isArray ())
       {
         final IJsonArray aArray = aJson.getAsArray ();
-        aTarget.put (sPrefix + "count", Integer.toString (aArray.getSize ()));
+        aTarget.put (sPrefix + "count", Integer.toString (aArray.size ()));
         int nIndex = 0;
         for (final IJson aChild : aArray)
         {
