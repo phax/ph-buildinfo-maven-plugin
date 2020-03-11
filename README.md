@@ -3,39 +3,13 @@
 A Maven 3 plugin that adds build information to the resulting artefacts.
 It allows to add an XML and/or a Properties file to the resulting artefact.
 
-# News and noteworthy
-
-* v3.0.0 - 2018-08-06
-  * Updated to ph-commons 9.0.0
-* v2.1.0 - 2017-04-11
-  * Updated buildinfo version number to `3`
-    * List of active profiles were added to build info output
-    * Changed property name `build.datetime` to `build.datetime.text`
-    * Changed property name `build.datetime.timezone` to `build.datetime.timezone.id`
-  * Switched to Maven plugin annotations
-  * Marked as thread-safe
-  * Timezone is now considered
-  * Added new property `ignoredPackagings` to define Maven packagings to be ignored for this plugin.
-  * Added new property `targetPath` to define the path in the final artefact
-  * Added support for writing JSON buildinfo files
-* v2.0.0 - 2016-07-01
-  * Updated to Java 8
-* v1.3.0 - 2015-08-31
-  * First version to require Maven 3.0
-  * Removed manual SLF4J integration
-  * Added support for Eclipse m2e plugin
-* v1.2.2 - 2015-03-11
-  * Last version to support Maven 2.x
-* v1.2.1 - 2014-09-02
-  * Tried to make compatible with Maven 2.2.1
-* v1.2.0 - 2014-08-26
-
 ## Maven configuration
+
 ```xml
 <plugin>
   <groupId>com.helger.maven</groupId>
   <artifactId>ph-buildinfo-maven-plugin</artifactId>
-  <version>3.0.0</version>
+  <version>3.0.1</version>
   <executions>
     <execution>
       <goals>
@@ -127,6 +101,35 @@ Configuration items are:
     Set the target path inside the final artefact where the files should be located.
     Defaults to `META-INF`.
     Since v2.1.0.
+
+# News and noteworthy
+
+* v3.0.1 - 2020-03-11
+    * Release with recent library versions
+* v3.0.0 - 2018-08-06
+    * Updated to ph-commons 9.0.0
+* v2.1.0 - 2017-04-11
+    * Updated buildinfo version number to `3`
+        * List of active profiles were added to build info output
+        * Changed property name `build.datetime` to `build.datetime.text`
+        * Changed property name `build.datetime.timezone` to `build.datetime.timezone.id`
+    * Switched to Maven plugin annotations
+    * Marked as thread-safe
+    * Timezone is now considered
+    * Added new property `ignoredPackagings` to define Maven packagings to be ignored for this plugin.
+    * Added new property `targetPath` to define the path in the final artefact
+    * Added support for writing JSON buildinfo files
+* v2.0.0 - 2016-07-01
+    * Updated to Java 8
+* v1.3.0 - 2015-08-31
+    * First version to require Maven 3.0
+    * Removed manual SLF4J integration
+    * Added support for Eclipse m2e plugin
+* v1.2.2 - 2015-03-11
+    * Last version to support Maven 2.x
+* v1.2.1 - 2014-09-02
+    * Tried to make compatible with Maven 2.2.1
+* v1.2.0 - 2014-08-26
 
 ---
 
