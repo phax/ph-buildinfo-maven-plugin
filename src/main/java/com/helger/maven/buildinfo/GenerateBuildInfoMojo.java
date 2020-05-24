@@ -432,7 +432,7 @@ public final class GenerateBuildInfoMojo extends AbstractMojo
     // listed
     if (reactorProjects != null && reactorProjects.size () != 1)
     {
-      final JsonArray aList = new JsonArray ();
+      final IJsonArray aList = new JsonArray ();
 
       // Show details of all reactor projects, index starting at 0
       for (final MavenProject aReactorProject : reactorProjects)
@@ -451,7 +451,7 @@ public final class GenerateBuildInfoMojo extends AbstractMojo
     final List <Plugin> aBuildPlugins = project.getBuildPlugins ();
     if (aBuildPlugins != null)
     {
-      final JsonArray aList = new JsonArray ();
+      final IJsonArray aList = new JsonArray ();
 
       // Show details of all plugins, index starting at 0
       for (final Plugin aPlugin : aBuildPlugins)
@@ -477,7 +477,7 @@ public final class GenerateBuildInfoMojo extends AbstractMojo
     final List <Dependency> aDependencies = project.getDependencies ();
     if (aDependencies != null)
     {
-      final JsonArray aList = new JsonArray ();
+      final IJsonArray aList = new JsonArray ();
       // Show details of all dependencies
       for (final Dependency aDependency : aDependencies)
       {
@@ -516,7 +516,6 @@ public final class GenerateBuildInfoMojo extends AbstractMojo
     if (aActiveProfiles != null)
     {
       final IJsonArray aList = new JsonArray ();
-
       for (final Profile aProfile : aActiveProfiles)
       {
         aList.add (new JsonObject ().add ("id", aProfile.getId ()));
