@@ -57,7 +57,9 @@ import com.helger.commons.lang.NonBlockingProperties;
 import com.helger.commons.regex.RegExHelper;
 import com.helger.commons.string.StringHelper;
 import com.helger.commons.system.SystemProperties;
+import com.helger.json.IJsonArray;
 import com.helger.json.JsonArray;
+import com.helger.json.JsonObject;
 import com.helger.json.serialize.JsonWriter;
 import com.helger.json.serialize.JsonWriterSettings;
 import com.helger.xml.microdom.util.XMLMapHandler;
@@ -98,9 +100,7 @@ public final class GenerateBuildInfoMojo extends AbstractMojo
   /**
    * The directory where the temporary buildinfo files will be saved.
    */
-  @Parameter (property = "tempDirectory",
-              defaultValue = "${project.build.directory}/buildinfo-maven-plugin",
-              required = true)
+  @Parameter (property = "tempDirectory", defaultValue = "${project.build.directory}/buildinfo-maven-plugin", required = true)
   private File tempDirectory;
 
   /**
@@ -444,7 +444,7 @@ public final class GenerateBuildInfoMojo extends AbstractMojo
         aSubProps.add ("name", aReactorProject.getName ());
         aList.add (aSubProps);
       }
-      aProps.add ("reactorproject", aList);
+      aProps.addJson ("reactorproject", aList);
     }
 
     // Build Plugins
@@ -470,7 +470,7 @@ public final class GenerateBuildInfoMojo extends AbstractMojo
         aList.add (aSubProps);
       }
 
-      aProps.getChild ("build").add ("plugin", aList);
+      aProps.getChild ("build").addJson ("plugin", aList);
     }
 
     // Build dependencies
@@ -498,34 +498,30 @@ public final class GenerateBuildInfoMojo extends AbstractMojo
         final List <Exclusion> aExclusions = aDependency.getExclusions ();
         if (aExclusions != null)
         {
-          final JsonArray aExclusionList = new JsonArray ();
+          final IJsonArray aExclusionList = new JsonArray ();
           for (final Exclusion aExclusion : aExclusions)
           {
-            final JsonProps aExclusionProps = new JsonProps ();
-            aExclusionProps.add ("groupid", aExclusion.getGroupId ());
-            aExclusionProps.add ("artifactid", aExclusion.getArtifactId ());
-            aExclusionList.add (aExclusionProps);
+            aExclusionList.add (new JsonObject ().add ("groupid", aExclusion.getGroupId ())
+                                                 .add ("artifactid", aExclusion.getArtifactId ()));
           }
-          aDepProps.add ("exclusion", aExclusionList);
+          aDepProps.addJson ("exclusion", aExclusionList);
         }
         aList.add (aDepProps);
       }
-      aProps.add ("dependency", aList);
+      aProps.addJson ("dependency", aList);
     }
 
     // Active profiles (V3)
     final List <Profile> aActiveProfiles = project.getActiveProfiles ();
     if (aActiveProfiles != null)
     {
-      final JsonArray aList = new JsonArray ();
+      final IJsonArray aList = new JsonArray ();
 
       for (final Profile aProfile : aActiveProfiles)
       {
-        final JsonProps aSubProps = new JsonProps ();
-        aSubProps.add ("id", aProfile.getId ());
-        aList.add (aSubProps);
+        aList.add (new JsonObject ().add ("id", aProfile.getId ()));
       }
-      aProps.add ("profiles", aList);
+      aProps.addJson ("profiles", aList);
     }
 
     // Build date and time
@@ -540,13 +536,11 @@ public final class GenerateBuildInfoMojo extends AbstractMojo
     aProps.getChildren ("build", "datetime", "timezone").add ("offsethours", nOfsSecs / CGlobal.SECONDS_PER_HOUR);
     aProps.getChildren ("build", "datetime", "timezone").add ("offsetmins", nOfsSecs / CGlobal.SECONDS_PER_MINUTE);
     aProps.getChildren ("build", "datetime", "timezone").add ("offsetsecs", nOfsSecs);
-    aProps.getChildren ("build", "datetime", "timezone").add ("offsetmillisecs",
-                                                              nOfsSecs * CGlobal.MILLISECONDS_PER_SECOND);
+    aProps.getChildren ("build", "datetime", "timezone").add ("offsetmillisecs", nOfsSecs * CGlobal.MILLISECONDS_PER_SECOND);
 
     // Emit system properties?
     if (withAllSystemProperties || CollectionHelper.isNotEmpty (selectedSystemProperties))
-      for (final Map.Entry <String, String> aEntry : CollectionHelper.getSortedByKey (SystemProperties.getAllProperties ())
-                                                                     .entrySet ())
+      for (final Map.Entry <String, String> aEntry : CollectionHelper.getSortedByKey (SystemProperties.getAllProperties ()).entrySet ())
       {
         final String sName = aEntry.getKey ();
         if (withAllSystemProperties || _matches (selectedSystemProperties, sName))
@@ -614,9 +608,7 @@ public final class GenerateBuildInfoMojo extends AbstractMojo
     if (ignoredPackagings != null && ignoredPackagings.contains (project.getPackaging ()))
     {
       // Do not execute for "POM" only projects
-      getLog ().info ("Not executing buildinfo plugin because the packaging '" +
-                      project.getPackaging () +
-                      "' is ignored.");
+      getLog ().info ("Not executing buildinfo plugin because the packaging '" + project.getPackaging () + "' is ignored.");
       return;
     }
 
