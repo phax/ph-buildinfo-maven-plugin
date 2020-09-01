@@ -593,7 +593,7 @@ public final class GenerateBuildInfoMojo extends AbstractMojo
     final File aFile = new File (tempDirectory, DEFAULT_FILENAME_BUILDINFO_JSON);
     try (final Writer aWriter = FileHelper.getBufferedWriter (aFile, EAppend.TRUNCATE, StandardCharsets.UTF_8))
     {
-      new JsonWriter (new JsonWriterSettings ().setIndentEnabled (true)).writeToWriter (aProps, aWriter);
+      new JsonWriter (JsonWriterSettings.DEFAULT_SETTINGS_FORMATTED).writeToWriter (aProps, aWriter);
     }
     catch (final IOException ex)
     {
