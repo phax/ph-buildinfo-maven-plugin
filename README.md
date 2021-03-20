@@ -105,7 +105,7 @@ Configuration items are:
 # News and noteworthy
 
 * v3.0.2 - work in progress
-    * Updated to ph-commons 9.4.7
+    * Updated to ph-commons 10
 * v3.0.1 - 2020-03-11
     * Release with recent library versions
 * v3.0.0 - 2018-08-06
