@@ -9,7 +9,7 @@ It allows to add an XML and/or a Properties file to the resulting artefact.
 <plugin>
   <groupId>com.helger.maven</groupId>
   <artifactId>ph-buildinfo-maven-plugin</artifactId>
-  <version>3.0.1</version>
+  <version>4.0.0</version>
   <executions>
     <execution>
       <goals>
