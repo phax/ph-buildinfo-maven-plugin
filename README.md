@@ -104,6 +104,9 @@ Configuration items are:
 
 # News and noteworthy
 
+* v4.0.0 - 2023-01-08
+    * Using Java 11 as the baseline
+    * Updated to ph-commons 11
 * v3.0.2 - 2021-03-22
     * Updated to ph-commons 10
 * v3.0.1 - 2020-03-11
