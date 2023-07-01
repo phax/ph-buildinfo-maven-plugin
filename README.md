@@ -104,6 +104,8 @@ Configuration items are:
 
 # News and noteworthy
 
+* v4.0.1 - 2023-07-01
+    * Make sure all Maven dependencies are in scope `provided`
 * v4.0.0 - 2023-01-08
     * Using Java 11 as the baseline
     * Updated to ph-commons 11
