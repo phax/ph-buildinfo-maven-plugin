@@ -76,7 +76,7 @@
       <dependency>
         <groupId>com.helger.commons</groupId>
         <artifactId>ph-commons-parent-pom</artifactId>
-        <version>11.1.5</version>
+        <version>11.1.6</version>
         <type>pom</type>
         <scope>import</scope>
       </dependency>
@@ -146,7 +146,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-plugin-plugin</artifactId>
-        <version>3.11.0</version>
+        <version>3.12.0</version>
       </plugin>
     </plugins>
   </reporting>
