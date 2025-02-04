@@ -1,5 +1,8 @@
 # ph-buildinfo-maven-plugin
 
+[![javadoc](https://javadoc.io/badge2/com.helger.maven/ph-buildinfo-maven-plugin/javadoc.svg)](https://javadoc.io/doc/com.helger.maven/ph-buildinfo-maven-plugin)
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.helger.maven/ph-buildinfo-maven-plugin/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.helger.maven/ph-buildinfo-maven-plugin) 
+
 A Maven 3 plugin that adds build information to the resulting artefacts.
 It allows to add an XML and/or a Properties file to the resulting artefact.
 
@@ -9,7 +12,7 @@ It allows to add an XML and/or a Properties file to the resulting artefact.
 <plugin>
   <groupId>com.helger.maven</groupId>
   <artifactId>ph-buildinfo-maven-plugin</artifactId>
-  <version>4.0.0</version>
+  <version>4.0.1</version>
   <executions>
     <execution>
       <goals>
