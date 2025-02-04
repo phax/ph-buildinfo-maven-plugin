@@ -39,50 +39,50 @@ It allows to add an XML and/or a Properties file to the resulting artefact.
 
 Configuration items are:
 
-  * `HashSet <String>` **ignoredPackagings**
-    A set of ignored packagings for which the buildinfo plugin is not executed.
-    Defaults to `pom`.
-    Since v2.1.0 
-  * `File` **tempDirectory**  
-    The directory where the temporary buildinfo files will be saved.  
-    Defaults to `${project.build.directory}/buildinfo-maven-plugin`
-  * `boolean` **withAllSystemProperties**  
-    Should all system properties be emitted into the build info? 
-    If this flag is set, the **selectedSystemProperties** are cleared, so either this flag or
-    the **selectedSystemProperties** should be used. All contained system properties are prefixed with
-    `systemproperty.` in the generated file.  
-    Defaults to `false`.
-  * `HashSet <String>` **selectedSystemProperties**  
-     A selected subset of system property names 
-     to be emitted. Each element can be a regular expression to match more than one potential 
-     system property. If this set is not empty, the **withSystemProperties** property should not 
-     need to be enabled. All contained system properties are prefixed with `systemproperty.`
-     in the generated file.
-  * `HashSet<String>` **ignoredSystemProperties**  
-     A selected subset of system property names 
-     to be ignored. Each element can be a regular expression to match more than one potential system
-     property. Ignored system properties take precedence over selected system properties. 
-     They are also ignored if **withAllSystemProperties** is set to `true`.
-  * `boolean` **withAllEnvVars**  
-     Should all environment variables be emitted into the build info? If this flag is set, 
-     the selectedEnvVars are cleared, so either this flag or the **selectedEnvVars** should be used.
-     All contained environment variables are prefixed with `envvar.` in the generated file.  
-     Defaults to `false`.
-  * `HashSet <String>` **selectedEnvVars**  
-     A selected subset of environment variables names to be emitted. Each element can be 
-     a regular expression to match more than one potential environment variables. 
-     If this set is not empty, the **withEnvVars** property does not need to be enabled.
-     All contained environment variables are prefixed with `envvar.` in the generated file.
-  * `HashSet <String>` **ignoredEnvVars**  
-     A selected subset of environment variables names to be ignored. Each element can be a 
-     regular expression to match more than one potential environment variables. Ignored 
-     environment variables take precedence over selected environment variables.
-     They are also ignored if withAllEnvVars is set to `true`.
-  * `boolean` **formatXML**  
-     Generate build info in .XML format? It is safe to generate multiple formats in one run!  
-     Defaults to `true`.  
-     The created file is always **targetPath** + `buildinfo.xml`.  
-     The generated file has the following layout:
+* `HashSet <String>` **ignoredPackagings**  
+  A set of ignored packagings for which the buildinfo plugin is not executed.
+  Defaults to `pom`.
+  Since v2.1.0 
+* `File` **tempDirectory**  
+  The directory where the temporary buildinfo files will be saved.  
+  Defaults to `${project.build.directory}/buildinfo-maven-plugin`
+* `boolean` **withAllSystemProperties**  
+  Should all system properties be emitted into the build info? 
+  If this flag is set, the **selectedSystemProperties** are cleared, so either this flag or
+  the **selectedSystemProperties** should be used. All contained system properties are prefixed with
+  `systemproperty.` in the generated file.  
+  Defaults to `false`.
+* `HashSet <String>` **selectedSystemProperties**  
+   A selected subset of system property names 
+   to be emitted. Each element can be a regular expression to match more than one potential 
+   system property. If this set is not empty, the **withSystemProperties** property should not 
+   need to be enabled. All contained system properties are prefixed with `systemproperty.`
+   in the generated file.
+* `HashSet<String>` **ignoredSystemProperties**  
+   A selected subset of system property names 
+   to be ignored. Each element can be a regular expression to match more than one potential system
+   property. Ignored system properties take precedence over selected system properties. 
+   They are also ignored if **withAllSystemProperties** is set to `true`.
+* `boolean` **withAllEnvVars**  
+   Should all environment variables be emitted into the build info? If this flag is set, 
+   the selectedEnvVars are cleared, so either this flag or the **selectedEnvVars** should be used.
+   All contained environment variables are prefixed with `envvar.` in the generated file.  
+   Defaults to `false`.
+* `HashSet <String>` **selectedEnvVars**  
+   A selected subset of environment variables names to be emitted. Each element can be 
+   a regular expression to match more than one potential environment variables. 
+   If this set is not empty, the **withEnvVars** property does not need to be enabled.
+   All contained environment variables are prefixed with `envvar.` in the generated file.
+* `HashSet <String>` **ignoredEnvVars**  
+   A selected subset of environment variables names to be ignored. Each element can be a 
+   regular expression to match more than one potential environment variables. Ignored 
+   environment variables take precedence over selected environment variables.
+   They are also ignored if withAllEnvVars is set to `true`.
+* `boolean` **formatXML**  
+   Generate build info in .XML format? It is safe to generate multiple formats in one run!  
+   Defaults to `true`.  
+   The created file is always **targetPath** + `buildinfo.xml`.  
+   The generated file has the following layout:
 ```xml     
 <mapping>
   <map key="buildinfo.version" value="3" />
@@ -91,19 +91,19 @@ Configuration items are:
 </mapping>
 ```
 
-  * `boolean` **formatProperties**  
-    Generate build info in .properties format? It is safe to generate multiple formats in one run!  
-    Defaults to `false`.
-    The created file is always **targetPath** + `buildinfo.properties`.
-  * `boolean` **formatJson**  
-    Generate build info in .json format? It is safe to generate multiple formats in one run!  
-    Defaults to `false`.
-    The created file is always **targetPath** + `buildinfo.json`.
-    Since v2.1.0.
-  * `String` **targetPath**
-    Set the target path inside the final artefact where the files should be located.
-    Defaults to `META-INF`.
-    Since v2.1.0.
+* `boolean` **formatProperties**  
+  Generate build info in .properties format? It is safe to generate multiple formats in one run!  
+  Defaults to `false`.
+  The created file is always **targetPath** + `buildinfo.properties`.
+* `boolean` **formatJson**  
+  Generate build info in .json format? It is safe to generate multiple formats in one run!  
+  Defaults to `false`.
+  The created file is always **targetPath** + `buildinfo.json`.
+  Since v2.1.0.
+* `String` **targetPath**  
+  Set the target path inside the final artefact where the files should be located.
+  Defaults to `META-INF`.
+  Since v2.1.0.
 
 # News and noteworthy
 
