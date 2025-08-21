@@ -20,6 +20,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.Writer;
 import java.nio.charset.StandardCharsets;
+import java.time.Clock;
 import java.time.DateTimeException;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -45,18 +46,18 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
 
-import com.helger.commons.CGlobal;
-import com.helger.commons.collection.CollectionHelper;
-import com.helger.commons.datetime.PDTFactory;
-import com.helger.commons.io.EAppend;
-import com.helger.commons.io.file.FileHelper;
-import com.helger.commons.io.file.FileIOError;
-import com.helger.commons.io.file.FileOperations;
-import com.helger.commons.io.resource.FileSystemResource;
-import com.helger.commons.lang.NonBlockingProperties;
-import com.helger.commons.regex.RegExHelper;
-import com.helger.commons.string.StringHelper;
-import com.helger.commons.system.SystemProperties;
+import com.helger.base.CGlobal;
+import com.helger.base.io.EAppend;
+import com.helger.base.rt.NonBlockingProperties;
+import com.helger.base.string.StringHelper;
+import com.helger.base.system.SystemProperties;
+import com.helger.cache.regex.RegExHelper;
+import com.helger.collection.CollectionHelper;
+import com.helger.collection.helper.CollectionSort;
+import com.helger.io.file.FileHelper;
+import com.helger.io.file.FileIOError;
+import com.helger.io.file.FileOperations;
+import com.helger.io.resource.FileSystemResource;
 import com.helger.json.IJsonArray;
 import com.helger.json.JsonArray;
 import com.helger.json.JsonObject;
@@ -66,10 +67,9 @@ import com.helger.xml.microdom.util.XMLMapHandler;
 
 /**
  * @author Philip Helger
- * @description Create build information at compile time. The information will
- *              be part of the created JAR/WAR/... file. The resulting file will
- *              reside in the <code>META-INF</code> directory of the created
- *              artifact.
+ * @description Create build information at compile time. The information will be part of the
+ *              created JAR/WAR/... file. The resulting file will reside in the
+ *              <code>META-INF</code> directory of the created artifact.
  */
 @Mojo (name = "generate-buildinfo", defaultPhase = LifecyclePhase.GENERATE_RESOURCES, threadSafe = true)
 public final class GenerateBuildInfoMojo extends AbstractMojo
@@ -88,9 +88,8 @@ public final class GenerateBuildInfoMojo extends AbstractMojo
   private List <MavenProject> reactorProjects;
 
   /**
-   * A set of ignored packagings for which the buildinfo plugin is not executed.
-   * Note: to use more values as default values, use a comma separated list such
-   * as "pom,pom2,pom3" etc.
+   * A set of ignored packagings for which the buildinfo plugin is not executed. Note: to use more
+   * values as default values, use a comma separated list such as "pom,pom2,pom3" etc.
    *
    * @since 2.1.0
    */
@@ -100,82 +99,77 @@ public final class GenerateBuildInfoMojo extends AbstractMojo
   /**
    * The directory where the temporary buildinfo files will be saved.
    */
-  @Parameter (property = "tempDirectory", defaultValue = "${project.build.directory}/buildinfo-maven-plugin", required = true)
+  @Parameter (property = "tempDirectory",
+              defaultValue = "${project.build.directory}/buildinfo-maven-plugin",
+              required = true)
   private File tempDirectory;
 
   /**
-   * Set the time zone to be used. Use "UTC" for the universal timezone.
-   * Otherwise Strings like "Europe/Vienna" should be used. If unspecified, the
-   * system default time zone is used.
+   * Set the time zone to be used. Use "UTC" for the universal timezone. Otherwise Strings like
+   * "Europe/Vienna" should be used. If unspecified, the system default time zone is used.
    */
   @Parameter (property = "timeZone")
   private String timeZone;
 
   /**
-   * Should all system properties be emitted into the build info? If this flag
-   * is set, the selectedSystemProperties are cleared, so either this flag or
-   * the selectedSystemProperties should be used.<br>
-   * All contained system properties are prefixed with
-   * <code>systemproperty.</code> in the generated file.
+   * Should all system properties be emitted into the build info? If this flag is set, the
+   * selectedSystemProperties are cleared, so either this flag or the selectedSystemProperties
+   * should be used.<br>
+   * All contained system properties are prefixed with <code>systemproperty.</code> in the generated
+   * file.
    */
   @Parameter (property = "withAllSystemProperties", defaultValue = "false")
   private boolean withAllSystemProperties = false;
 
   /**
-   * A selected subset of system property names to be emitted. Each element can
-   * be a regular expression to match more than one potential system property.
-   * If this set is not empty, the withSystemProperties property should not need
-   * to be enabled.<br>
-   * All contained system properties are prefixed with
-   * <code>systemproperty.</code> in the generated file.
+   * A selected subset of system property names to be emitted. Each element can be a regular
+   * expression to match more than one potential system property. If this set is not empty, the
+   * withSystemProperties property should not need to be enabled.<br>
+   * All contained system properties are prefixed with <code>systemproperty.</code> in the generated
+   * file.
    */
   @Parameter (property = "selectedSystemProperties")
   private HashSet <String> selectedSystemProperties;
 
   /**
-   * A selected subset of system property names to be ignored. Each element can
-   * be a regular expression to match more than one potential system property.
-   * Ignored system properties take precedence over selected system properties.
-   * They are also ignored if withAllSystemProperties is set to
-   * <code>true</code>.
+   * A selected subset of system property names to be ignored. Each element can be a regular
+   * expression to match more than one potential system property. Ignored system properties take
+   * precedence over selected system properties. They are also ignored if withAllSystemProperties is
+   * set to <code>true</code>.
    */
   @Parameter (property = "ignoredSystemProperties")
   private HashSet <String> ignoredSystemProperties;
 
   /**
-   * Should all environment variables be emitted into the build info? If this
-   * flag is set, the selectedEnvVars are cleared, so either this flag or the
-   * selectedEnvVars should be used.<br>
-   * All contained environment variables are prefixed with <code>envvar.</code>
-   * in the generated file.
+   * Should all environment variables be emitted into the build info? If this flag is set, the
+   * selectedEnvVars are cleared, so either this flag or the selectedEnvVars should be used.<br>
+   * All contained environment variables are prefixed with <code>envvar.</code> in the generated
+   * file.
    */
   @Parameter (property = "withAllEnvVars", defaultValue = "false")
   private boolean withAllEnvVars = false;
 
   /**
-   * A selected subset of environment variables names to be emitted. Each
-   * element can be a regular expression to match more than one potential
-   * environment variables. If this set is not empty, the withEnvVars property
-   * does not need to be enabled.<br>
-   * All contained environment variables are prefixed with <code>envvar.</code>
-   * in the generated file.
+   * A selected subset of environment variables names to be emitted. Each element can be a regular
+   * expression to match more than one potential environment variables. If this set is not empty,
+   * the withEnvVars property does not need to be enabled.<br>
+   * All contained environment variables are prefixed with <code>envvar.</code> in the generated
+   * file.
    */
   @Parameter (property = "selectedEnvVars")
   private HashSet <String> selectedEnvVars;
 
   /**
-   * A selected subset of environment variables names to be ignored. Each
-   * element can be a regular expression to match more than one potential
-   * environment variables. Ignored environment variables take precedence over
-   * selected environment variables. They are also ignored if withAllEnvVars is
-   * set to <code>true</code>.
+   * A selected subset of environment variables names to be ignored. Each element can be a regular
+   * expression to match more than one potential environment variables. Ignored environment
+   * variables take precedence over selected environment variables. They are also ignored if
+   * withAllEnvVars is set to <code>true</code>.
    */
   @Parameter (property = "ignoredEnvVars")
   private HashSet <String> ignoredEnvVars;
 
   /**
-   * Generate build info in .XML format? It is safe to generate multiple formats
-   * in one run!<br>
+   * Generate build info in .XML format? It is safe to generate multiple formats in one run!<br>
    * The generated file has the following layout:
    *
    * <pre>
@@ -190,15 +184,13 @@ public final class GenerateBuildInfoMojo extends AbstractMojo
   private boolean formatXML = true;
 
   /**
-   * Generate build info in .properties format? It is safe to generate multiple
-   * formats in one run!
+   * Generate build info in .properties format? It is safe to generate multiple formats in one run!
    */
   @Parameter (property = "formatProperties", defaultValue = "false")
   private boolean formatProperties = false;
 
   /**
-   * Generate build info in .json format? It is safe to generate multiple
-   * formats in one run!
+   * Generate build info in .json format? It is safe to generate multiple formats in one run!
    *
    * @since 2.1.0
    */
@@ -206,8 +198,7 @@ public final class GenerateBuildInfoMojo extends AbstractMojo
   private boolean formatJson = false;
 
   /**
-   * Set the target path inside the final artefact where the files should be
-   * located.
+   * Set the target path inside the final artefact where the files should be located.
    *
    * @since 2.1.0
    */
@@ -221,7 +212,7 @@ public final class GenerateBuildInfoMojo extends AbstractMojo
     if (aCollection != null)
     {
       for (final String sName : aCollection)
-        if (StringHelper.hasText (sName))
+        if (StringHelper.isNotEmpty (sName))
           if (!ignoredPackagings.add (sName))
             getLog ().warn ("The ignored packaging '" + sName + "' is contained more than once");
     }
@@ -279,7 +270,7 @@ public final class GenerateBuildInfoMojo extends AbstractMojo
     if (aCollection != null)
     {
       for (final String sName : aCollection)
-        if (StringHelper.hasText (sName))
+        if (StringHelper.isNotEmpty (sName))
           if (!selectedSystemProperties.add (sName))
             getLog ().warn ("The selected system property '" + sName + "' is contained more than once");
     }
@@ -301,7 +292,7 @@ public final class GenerateBuildInfoMojo extends AbstractMojo
     if (aCollection != null)
     {
       for (final String sName : aCollection)
-        if (StringHelper.hasText (sName))
+        if (StringHelper.isNotEmpty (sName))
           if (!ignoredSystemProperties.add (sName))
             getLog ().warn ("The ignored system property '" + sName + "' is contained more than once");
     }
@@ -328,7 +319,7 @@ public final class GenerateBuildInfoMojo extends AbstractMojo
     if (aCollection != null)
     {
       for (final String sName : aCollection)
-        if (StringHelper.hasText (sName))
+        if (StringHelper.isNotEmpty (sName))
           if (!selectedEnvVars.add (sName))
             getLog ().warn ("The selected environment variable '" + sName + "' is contained more than once");
     }
@@ -350,7 +341,7 @@ public final class GenerateBuildInfoMojo extends AbstractMojo
     if (aCollection != null)
     {
       for (final String sName : aCollection)
-        if (StringHelper.hasText (sName))
+        if (StringHelper.isNotEmpty (sName))
           if (!ignoredEnvVars.add (sName))
             getLog ().warn ("The ignored environment variable '" + sName + "' is contained more than once");
     }
@@ -400,7 +391,7 @@ public final class GenerateBuildInfoMojo extends AbstractMojo
   private JsonProps _determineBuildInfoProperties ()
   {
     // Get the current time, using the time zone specified in the settings
-    final LocalDateTime aDT = PDTFactory.getCurrentLocalDateTime ();
+    final LocalDateTime aDT = LocalDateTime.now (Clock.systemDefaultZone ());
 
     // Build the default properties
     final JsonProps aProps = new JsonProps ();
@@ -444,7 +435,7 @@ public final class GenerateBuildInfoMojo extends AbstractMojo
         aSubProps.add ("name", aReactorProject.getName ());
         aList.add (aSubProps);
       }
-      aProps.addJson ("reactorproject", aList);
+      aProps.add ("reactorproject", aList);
     }
 
     // Build Plugins
@@ -470,7 +461,7 @@ public final class GenerateBuildInfoMojo extends AbstractMojo
         aList.add (aSubProps);
       }
 
-      aProps.getChild ("build").addJson ("plugin", aList);
+      aProps.getChild ("build").add ("plugin", aList);
     }
 
     // Build dependencies
@@ -504,11 +495,11 @@ public final class GenerateBuildInfoMojo extends AbstractMojo
             aExclusionList.add (new JsonObject ().add ("groupid", aExclusion.getGroupId ())
                                                  .add ("artifactid", aExclusion.getArtifactId ()));
           }
-          aDepProps.addJson ("exclusion", aExclusionList);
+          aDepProps.add ("exclusion", aExclusionList);
         }
         aList.add (aDepProps);
       }
-      aProps.addJson ("dependency", aList);
+      aProps.add ("dependency", aList);
     }
 
     // Active profiles (V3)
@@ -520,7 +511,7 @@ public final class GenerateBuildInfoMojo extends AbstractMojo
       {
         aList.add (new JsonObject ().add ("id", aProfile.getId ()));
       }
-      aProps.addJson ("profiles", aList);
+      aProps.add ("profiles", aList);
     }
 
     // Build date and time
@@ -528,18 +519,21 @@ public final class GenerateBuildInfoMojo extends AbstractMojo
     final ZonedDateTime aZonedDT = ZonedDateTime.of (aDT, aZoneID);
     final int nOfsSecs = aZonedDT.getOffset ().getTotalSeconds ();
     aProps.getChildren ("build", "datetime").add ("text", aDT.toString ());
-    aProps.getChildren ("build", "datetime").add ("millis", PDTFactory.getMillis (aDT));
+    aProps.getChildren ("build", "datetime")
+          .add ("millis", ZonedDateTime.of (aDT, ZoneId.systemDefault ()).toInstant ().toEpochMilli ());
     aProps.getChildren ("build", "datetime").add ("date", aDT.toLocalDate ().toString ());
     aProps.getChildren ("build", "datetime").add ("time", aDT.toLocalTime ().toString ());
     aProps.getChildren ("build", "datetime", "timezone").add ("id", aZoneID.getId ());
     aProps.getChildren ("build", "datetime", "timezone").add ("offsethours", nOfsSecs / CGlobal.SECONDS_PER_HOUR);
     aProps.getChildren ("build", "datetime", "timezone").add ("offsetmins", nOfsSecs / CGlobal.SECONDS_PER_MINUTE);
     aProps.getChildren ("build", "datetime", "timezone").add ("offsetsecs", nOfsSecs);
-    aProps.getChildren ("build", "datetime", "timezone").add ("offsetmillisecs", nOfsSecs * CGlobal.MILLISECONDS_PER_SECOND);
+    aProps.getChildren ("build", "datetime", "timezone")
+          .add ("offsetmillisecs", nOfsSecs * CGlobal.MILLISECONDS_PER_SECOND);
 
     // Emit system properties?
     if (withAllSystemProperties || CollectionHelper.isNotEmpty (selectedSystemProperties))
-      for (final Map.Entry <String, String> aEntry : CollectionHelper.getSortedByKey (SystemProperties.getAllProperties ()).entrySet ())
+      for (final Map.Entry <String, String> aEntry : CollectionSort.getSortedByKey (SystemProperties.getAllProperties ())
+                                                                   .entrySet ())
       {
         final String sName = aEntry.getKey ();
         if (withAllSystemProperties || _matches (selectedSystemProperties, sName))
@@ -549,7 +543,7 @@ public final class GenerateBuildInfoMojo extends AbstractMojo
 
     // Emit environment variable?
     if (withAllEnvVars || CollectionHelper.isNotEmpty (selectedEnvVars))
-      for (final Map.Entry <String, String> aEntry : CollectionHelper.getSortedByKey (System.getenv ()).entrySet ())
+      for (final Map.Entry <String, String> aEntry : CollectionSort.getSortedByKey (System.getenv ()).entrySet ())
       {
         final String sName = aEntry.getKey ();
         if (withAllEnvVars || _matches (selectedEnvVars, sName))
@@ -607,7 +601,9 @@ public final class GenerateBuildInfoMojo extends AbstractMojo
     if (ignoredPackagings != null && ignoredPackagings.contains (project.getPackaging ()))
     {
       // Do not execute for "POM" only projects
-      getLog ().info ("Not executing buildinfo plugin because the packaging '" + project.getPackaging () + "' is ignored.");
+      getLog ().info ("Not executing buildinfo plugin because the packaging '" +
+                      project.getPackaging () +
+                      "' is ignored.");
       return;
     }
 
