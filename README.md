@@ -12,7 +12,7 @@ It allows to add an XML and/or a Properties file to the resulting artefact.
 <plugin>
   <groupId>com.helger.maven</groupId>
   <artifactId>ph-buildinfo-maven-plugin</artifactId>
-  <version>4.0.1</version>
+  <version>5.0.0</version>
   <executions>
     <execution>
       <goals>
@@ -107,7 +107,7 @@ Configuration items are:
 
 # News and noteworthy
 
-v5.0.0 - work in progress
+v5.0.0 - 2025-08-25
 * Requires Java 17 as the minimum version
 * Updated to ph-commons 12.0.0
 
