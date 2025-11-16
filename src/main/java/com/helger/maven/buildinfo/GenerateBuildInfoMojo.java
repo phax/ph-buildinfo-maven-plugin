@@ -42,6 +42,8 @@ import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 
 import com.helger.base.CGlobal;
 import com.helger.base.io.EAppend;
@@ -61,9 +63,6 @@ import com.helger.json.JsonObject;
 import com.helger.json.serialize.JsonWriter;
 import com.helger.json.serialize.JsonWriterSettings;
 import com.helger.xml.microdom.util.XMLMapHandler;
-
-import jakarta.annotation.Nonnull;
-import jakarta.annotation.Nullable;
 
 /**
  * @author Philip Helger
@@ -218,7 +217,7 @@ public final class GenerateBuildInfoMojo extends AbstractMojo
     }
   }
 
-  public void setTempDirectory (@Nonnull final File aDir) throws MojoExecutionException
+  public void setTempDirectory (@NonNull final File aDir) throws MojoExecutionException
   {
     if (aDir == null)
       throw new MojoExecutionException ("No buildinfo temp directory specified!");
@@ -369,7 +368,7 @@ public final class GenerateBuildInfoMojo extends AbstractMojo
     targetPath = sTargetPath;
   }
 
-  private static boolean _matches (@Nullable final Set <String> aSet, @Nonnull final String sName)
+  private static boolean _matches (@Nullable final Set <String> aSet, @NonNull final String sName)
   {
     if (aSet == null)
       return false;
@@ -387,7 +386,7 @@ public final class GenerateBuildInfoMojo extends AbstractMojo
     return false;
   }
 
-  @Nonnull
+  @NonNull
   private JsonProps _determineBuildInfoProperties ()
   {
     // Get the current time, using the time zone specified in the settings
@@ -554,7 +553,7 @@ public final class GenerateBuildInfoMojo extends AbstractMojo
     return aProps;
   }
 
-  private void _writeBuildinfoXMLv1 (@Nonnull final JsonProps aProps) throws MojoExecutionException
+  private void _writeBuildinfoXMLv1 (@NonNull final JsonProps aProps) throws MojoExecutionException
   {
     // Write the XML in the format that it can easily be read by the
     // com.helger.common.microdom.reader.XMLMapHandler class
@@ -564,7 +563,7 @@ public final class GenerateBuildInfoMojo extends AbstractMojo
     getLog ().debug ("Wrote buildinfo XML file to " + aFile);
   }
 
-  private void _writeBuildinfoProperties (@Nonnull final JsonProps aProps) throws MojoExecutionException
+  private void _writeBuildinfoProperties (@NonNull final JsonProps aProps) throws MojoExecutionException
   {
     // Write properties file
     final File aFile = new File (tempDirectory, DEFAULT_FILENAME_BUILDINFO_PROPERTIES);
@@ -581,7 +580,7 @@ public final class GenerateBuildInfoMojo extends AbstractMojo
     getLog ().debug ("Wrote buildinfo properties file to " + aFile);
   }
 
-  private void _writeBuildinfoJson (@Nonnull final JsonProps aProps) throws MojoExecutionException
+  private void _writeBuildinfoJson (@NonNull final JsonProps aProps) throws MojoExecutionException
   {
     // Write properties file
     final File aFile = new File (tempDirectory, DEFAULT_FILENAME_BUILDINFO_JSON);

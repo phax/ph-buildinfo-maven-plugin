@@ -18,6 +18,8 @@ package com.helger.maven.buildinfo;
 
 import java.util.Map;
 
+import org.jspecify.annotations.NonNull;
+
 import com.helger.annotation.style.ReturnsMutableCopy;
 import com.helger.base.string.StringHelper;
 import com.helger.collection.commons.CommonsLinkedHashMap;
@@ -27,18 +29,16 @@ import com.helger.json.IJsonArray;
 import com.helger.json.IJsonObject;
 import com.helger.json.JsonObject;
 
-import jakarta.annotation.Nonnull;
-
 final class JsonProps extends JsonObject
 {
-  @Nonnull
-  public JsonProps getChild (@Nonnull final String sName)
+  @NonNull
+  public JsonProps getChild (@NonNull final String sName)
   {
     return (JsonProps) computeIfAbsent (sName, k -> new JsonProps ());
   }
 
-  @Nonnull
-  public JsonProps getChildren (@Nonnull final String... aNames)
+  @NonNull
+  public JsonProps getChildren (@NonNull final String... aNames)
   {
     JsonProps ret = this;
     for (final String sName : aNames)
@@ -46,9 +46,9 @@ final class JsonProps extends JsonObject
     return ret;
   }
 
-  private void _getFlat (@Nonnull final IJson aJson,
-                         @Nonnull final String sPrefix,
-                         @Nonnull final ICommonsOrderedMap <String, String> aTarget)
+  private void _getFlat (@NonNull final IJson aJson,
+                         @NonNull final String sPrefix,
+                         @NonNull final ICommonsOrderedMap <String, String> aTarget)
   {
     if (aJson.isValue ())
     {
@@ -77,7 +77,7 @@ final class JsonProps extends JsonObject
       }
   }
 
-  @Nonnull
+  @NonNull
   @ReturnsMutableCopy
   public ICommonsOrderedMap <String, String> getAsFlatList ()
   {
