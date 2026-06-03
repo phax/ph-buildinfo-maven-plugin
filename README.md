@@ -3,6 +3,8 @@
 <!-- ph-badge-start -->
 [![Sonatype Central](https://maven-badges.sml.io/sonatype-central/com.helger.maven/ph-buildinfo-maven-plugin/badge.svg)](https://maven-badges.sml.io/sonatype-central/com.helger.maven/ph-buildinfo-maven-plugin/)
 [![javadoc](https://javadoc.io/badge2/com.helger.maven/ph-buildinfo-maven-plugin/javadoc.svg)](https://javadoc.io/doc/com.helger.maven/ph-buildinfo-maven-plugin)
+
+> If this project saved you some time or made your day a little easier, a star would mean a lot — it helps others find it too.
 <!-- ph-badge-end -->
 
 A Maven 3 plugin that adds build information to the resulting artefacts.
