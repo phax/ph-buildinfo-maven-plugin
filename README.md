@@ -118,7 +118,8 @@ Configuration items are:
 # News and noteworthy
 
 v5.0.2 - 2026-10-25
-* Added new configuration item `withPluginConfiguration` to leave out the build plugin configurations. See [PR #7](https://github.com/phax/ph-buildinfo-maven-plugin/pull/7) - thanks @gregjotau
+* Added new configuration item `withPluginConfiguration` to leave out the build plugin configurations.
+  See [PR #7](https://github.com/phax/ph-buildinfo-maven-plugin/pull/7) - thanks @gregjotau
 
 v5.0.1 - 2025-11-16
 * Updated to ph-commons 12.1.0
