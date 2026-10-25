@@ -16,7 +16,7 @@ It allows to add an XML and/or a Properties file to the resulting artefact.
 <plugin>
   <groupId>com.helger.maven</groupId>
   <artifactId>ph-buildinfo-maven-plugin</artifactId>
-  <version>5.0.1</version>
+  <version>5.0.2</version>
   <executions>
     <execution>
       <goals>
@@ -116,6 +116,9 @@ Configuration items are:
   Since v2.1.0.
 
 # News and noteworthy
+
+v5.0.2 - 2026-10-25
+* Added new configuration item `withPluginConfiguration` to leave out the build plugin configurations. See [PR #7](https://github.com/phax/ph-buildinfo-maven-plugin/pull/7) - thanks @gregjotau
 
 v5.0.1 - 2025-11-16
 * Updated to ph-commons 12.1.0
