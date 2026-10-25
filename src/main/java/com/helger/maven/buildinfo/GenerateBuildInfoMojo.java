@@ -168,6 +168,16 @@ public final class GenerateBuildInfoMojo extends AbstractMojo
   private HashSet <String> ignoredEnvVars;
 
   /**
+   * Should the configuration of each build plugin be emitted into the build info? It is emitted as
+   * an XML structure per plugin and usually makes up the biggest part of the generated file. The
+   * group ID, artifact ID, version and key of each plugin are always emitted.
+   *
+   * @since 5.0.2
+   */
+  @Parameter (property = "withPluginConfiguration", defaultValue = "true")
+  private boolean withPluginConfiguration = true;
+
+  /**
    * Generate build info in .XML format? It is safe to generate multiple formats in one run!<br>
    * The generated file has the following layout:
    *
@@ -450,7 +460,7 @@ public final class GenerateBuildInfoMojo extends AbstractMojo
         aSubProps.add ("groupid", aPlugin.getGroupId ());
         aSubProps.add ("artifactid", aPlugin.getArtifactId ());
         aSubProps.add ("version", aPlugin.getVersion ());
-        final Object aConfiguration = aPlugin.getConfiguration ();
+        final Object aConfiguration = withPluginConfiguration ? aPlugin.getConfiguration () : null;
         if (aConfiguration != null)
         {
           // Will emit an XML structure!

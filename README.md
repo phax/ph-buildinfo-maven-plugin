@@ -82,6 +82,12 @@ Configuration items are:
    regular expression to match more than one potential environment variables. Ignored 
    environment variables take precedence over selected environment variables.
    They are also ignored if withAllEnvVars is set to `true`.
+* `boolean` **withPluginConfiguration**  
+   Should the configuration of each build plugin be emitted into the build info? It is emitted as
+   an XML structure per plugin and usually makes up the biggest part of the generated file.
+   The group ID, artifact ID, version and key of each plugin are always emitted.  
+   Defaults to `true`.  
+   Since v5.0.2.
 * `boolean` **formatXML**  
    Generate build info in .XML format? It is safe to generate multiple formats in one run!  
    Defaults to `true`.  
